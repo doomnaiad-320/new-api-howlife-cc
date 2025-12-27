@@ -150,6 +150,7 @@ func main() {
 	})
 	server.Use(sessions.Sessions("session", store))
 
+	InjectSEO()
 	InjectUmamiAnalytics()
 	InjectGoogleAnalytics()
 
@@ -167,6 +168,29 @@ func main() {
 	if err != nil {
 		common.FatalLog("failed to start HTTP server: " + err.Error())
 	}
+}
+
+func InjectSEO() {
+	// 从 OptionMap 获取 SEO 配置，如果没有则使用默认值
+	common.OptionMapRWMutex.RLock()
+	title := common.OptionMap["SystemName"]
+	description := common.OptionMap["SEODescription"]
+	keywords := common.OptionMap["SEOKeywords"]
+	common.OptionMapRWMutex.RUnlock()
+
+	if title == "" {
+		title = "New API"
+	}
+	if description == "" {
+		description = "OpenAI 接口聚合管理，支持多种渠道包括 Azure，可用于二次分发管理 key，仅单可执行文件，已打包好 Docker 镜像，一键部署，开箱即用"
+	}
+	if keywords == "" {
+		keywords = "OpenAI,ChatGPT,API,Claude,Gemini,AI接口,大模型,人工智能,API网关,GPT-4,AI代理,模型聚合"
+	}
+
+	indexPage = bytes.ReplaceAll(indexPage, []byte("{{.Title}}"), []byte(title))
+	indexPage = bytes.ReplaceAll(indexPage, []byte("{{.Description}}"), []byte(description))
+	indexPage = bytes.ReplaceAll(indexPage, []byte("{{.Keywords}}"), []byte(keywords))
 }
 
 func InjectUmamiAnalytics() {

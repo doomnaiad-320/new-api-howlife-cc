@@ -26,6 +26,7 @@ import SettingsSensitiveWords from '../../pages/Setting/Operation/SettingsSensit
 import SettingsLog from '../../pages/Setting/Operation/SettingsLog';
 import SettingsMonitoring from '../../pages/Setting/Operation/SettingsMonitoring';
 import SettingsCreditLimit from '../../pages/Setting/Operation/SettingsCreditLimit';
+import SettingsSEO from '../../pages/Setting/Operation/SettingsSEO';
 import { API, showError, toBoolean } from '../../helpers';
 
 const OperationSetting = () => {
@@ -71,6 +72,10 @@ const OperationSetting = () => {
     AutomaticDisableKeywords: '',
     'monitor_setting.auto_test_channel_enabled': false,
     'monitor_setting.auto_test_channel_minutes': 10,
+
+    /* SEO 设置 */
+    SEODescription: '',
+    SEOKeywords: '',
   });
 
   let [loading, setLoading] = useState(false);
@@ -115,6 +120,10 @@ const OperationSetting = () => {
         {/* 通用设置 */}
         <Card style={{ marginTop: '10px' }}>
           <SettingsGeneral options={inputs} refresh={onRefresh} />
+        </Card>
+        {/* SEO 设置 */}
+        <Card style={{ marginTop: '10px' }}>
+          <SettingsSEO options={inputs} refresh={onRefresh} />
         </Card>
         {/* 顶栏模块管理 */}
         <div style={{ marginTop: '10px' }}>
