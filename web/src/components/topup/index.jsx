@@ -35,6 +35,7 @@ import { StatusContext } from '../../context/Status';
 
 import RechargeCard from './RechargeCard';
 import InvitationCard from './InvitationCard';
+import TopupRebateCard from './TopupRebateCard';
 import TransferModal from './modals/TransferModal';
 import PaymentConfirmModal from './modals/PaymentConfirmModal';
 import TopupHistoryModal from './modals/TopupHistoryModal';
@@ -96,6 +97,10 @@ const TopUp = () => {
     amount_options: [],
     discount: {},
   });
+
+  // 返利配置
+  const [rebatePercent, setRebatePercent] = useState(0);
+  const [rebateMaxCount, setRebateMaxCount] = useState(0);
 
   const topUp = async () => {
     if (redemptionCode === '') {
@@ -419,6 +424,10 @@ const TopUp = () => {
           }));
           setPresetAmounts(customPresets);
         }
+
+        // 获取返利配置
+        setRebatePercent(data.topup_rebate_percent || 0);
+        setRebateMaxCount(data.topup_rebate_max_count || 0);
       } else {
         console.error('获取充值配置失败:', data);
       }
@@ -702,6 +711,8 @@ const TopUp = () => {
               statusLoading={statusLoading}
               topupInfo={topupInfo}
               onOpenHistory={handleOpenHistory}
+              rebatePercent={rebatePercent}
+              rebateMaxCount={rebateMaxCount}
             />
           </div>
 
@@ -714,6 +725,11 @@ const TopUp = () => {
               setOpenTransfer={setOpenTransfer}
               affLink={affLink}
               handleAffLinkClick={handleAffLinkClick}
+            />
+            <TopupRebateCard
+              t={t}
+              rebatePercent={rebatePercent}
+              rebateMaxCount={rebateMaxCount}
             />
           </div>
         </div>

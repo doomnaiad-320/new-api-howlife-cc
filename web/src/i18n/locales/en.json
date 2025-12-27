@@ -2187,6 +2187,18 @@
     "默认补全倍率": "Default completion ratio",
     "跨分组重试": "Cross-group retry",
     "跨分组": "Cross-group",
-    "开启后，当前分组渠道失败时会按顺序尝试下一个分组的渠道": "After enabling, when the current group channel fails, it will try the next group's channel in order"
+    "开启后，当前分组渠道失败时会按顺序尝试下一个分组的渠道": "After enabling, when the current group channel fails, it will try the next group's channel in order",
+    "充值返利": "Topup Rebate",
+    "邀请好友充值，您也能获得奖励": "Invite friends to recharge and earn rewards",
+    "返利比例": "Rebate Rate",
+    "返利次数": "Rebate Times",
+    "您邀请的好友每次充值，您都可获得其充值额度的": "Each time your invited friends recharge, you can get",
+    "作为返利": "of their recharge amount as rebate",
+    "每位好友的前": "The first",
+    "次充值可获得返利奖励": "recharges of each friend can earn rebate rewards",
+    "返利将自动计入您的邀请奖励额度，可划转到账户余额使用": "Rebate will be automatically added to your invitation rewards, which can be transferred to account balance",
+    "邀请好友注册后充值，您可获得其充值额度": "Invite friends to register and recharge, you can get",
+    "的返利奖励！前": "rebate reward! The first",
+    "次充值均可返利。": "recharges all qualify for rebate."
   }
 }

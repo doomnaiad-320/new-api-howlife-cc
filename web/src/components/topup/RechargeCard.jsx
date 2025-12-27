@@ -83,6 +83,8 @@ const RechargeCard = ({
   statusLoading,
   topupInfo,
   onOpenHistory,
+  rebatePercent,
+  rebateMaxCount,
 }) => {
   const onlineFormApiRef = useRef(null);
   const redeemFormApiRef = useRef(null);
@@ -483,6 +485,24 @@ const RechargeCard = ({
                       })}
                     </div>
                   </Form.Slot>
+                )}
+
+                {/* 返利广告语 */}
+                {(enableOnlineTopUp || enableStripeTopUp) && rebatePercent > 0 && rebateMaxCount > 0 && (
+                  <Banner
+                    type='warning'
+                    icon={null}
+                    description={
+                      <div className='flex items-center gap-2'>
+                        <span style={{ fontSize: '16px' }}>🎁</span>
+                        <span>
+                          {t('邀请好友注册后充值，您可获得其充值额度')} <strong>{rebatePercent}%</strong> {t('的返利奖励！前')} <strong>{rebateMaxCount}</strong> {t('次充值均可返利。')}
+                        </span>
+                      </div>
+                    }
+                    className='!rounded-xl'
+                    closeIcon={null}
+                  />
                 )}
 
                 {/* Creem 充值区域 */}

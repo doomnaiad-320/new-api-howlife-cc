@@ -48,16 +48,21 @@ func GetTopUpInfo(c *gin.Context) {
 		}
 	}
 
+	// 获取返利配置
+	quotaSetting := operation_setting.GetQuotaSetting()
+
 	data := gin.H{
-		"enable_online_topup": operation_setting.PayAddress != "" && operation_setting.EpayId != "" && operation_setting.EpayKey != "",
-		"enable_stripe_topup": setting.StripeApiSecret != "" && setting.StripeWebhookSecret != "" && setting.StripePriceId != "",
-		"enable_creem_topup":  setting.CreemApiKey != "" && setting.CreemProducts != "[]",
-		"creem_products":      setting.CreemProducts,
-		"pay_methods":         payMethods,
-		"min_topup":           operation_setting.MinTopUp,
-		"stripe_min_topup":    setting.StripeMinTopUp,
-		"amount_options":      operation_setting.GetPaymentSetting().AmountOptions,
-		"discount":            operation_setting.GetPaymentSetting().AmountDiscount,
+		"enable_online_topup":    operation_setting.PayAddress != "" && operation_setting.EpayId != "" && operation_setting.EpayKey != "",
+		"enable_stripe_topup":    setting.StripeApiSecret != "" && setting.StripeWebhookSecret != "" && setting.StripePriceId != "",
+		"enable_creem_topup":     setting.CreemApiKey != "" && setting.CreemProducts != "[]",
+		"creem_products":         setting.CreemProducts,
+		"pay_methods":            payMethods,
+		"min_topup":              operation_setting.MinTopUp,
+		"stripe_min_topup":       setting.StripeMinTopUp,
+		"amount_options":         operation_setting.GetPaymentSetting().AmountOptions,
+		"discount":               operation_setting.GetPaymentSetting().AmountDiscount,
+		"topup_rebate_percent":   quotaSetting.TopupRebatePercent,
+		"topup_rebate_max_count": quotaSetting.TopupRebateMaxCount,
 	}
 	common.ApiSuccess(c, data)
 }
