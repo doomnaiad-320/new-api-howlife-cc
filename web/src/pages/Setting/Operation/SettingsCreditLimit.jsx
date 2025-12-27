@@ -37,6 +37,8 @@ export default function SettingsCreditLimit(props) {
     QuotaForInviter: '',
     QuotaForInvitee: '',
     'quota_setting.enable_free_model_pre_consume': true,
+    'quota_setting.topup_rebate_percent': '',
+    'quota_setting.topup_rebate_max_count': '',
   });
   const refForm = useRef();
   const [inputsRow, setInputsRow] = useState(inputs);
@@ -78,9 +80,20 @@ export default function SettingsCreditLimit(props) {
 
   useEffect(() => {
     const currentInputs = {};
-    for (let key in props.options) {
-      if (Object.keys(inputs).includes(key)) {
+    const defaultInputs = {
+      QuotaForNewUser: '',
+      PreConsumedQuota: '',
+      QuotaForInviter: '',
+      QuotaForInvitee: '',
+      'quota_setting.enable_free_model_pre_consume': true,
+      'quota_setting.topup_rebate_percent': '',
+      'quota_setting.topup_rebate_max_count': '',
+    };
+    for (let key in defaultInputs) {
+      if (props.options.hasOwnProperty(key)) {
         currentInputs[key] = props.options[key];
+      } else {
+        currentInputs[key] = defaultInputs[key];
       }
     }
     setInputs(currentInputs);
@@ -162,6 +175,43 @@ export default function SettingsCreditLimit(props) {
                     setInputs({
                       ...inputs,
                       QuotaForInvitee: String(value),
+                    })
+                  }
+                />
+              </Col>
+            </Row>
+            <Row gutter={16}>
+              <Col xs={24} sm={12} md={8} lg={8} xl={8}>
+                <Form.InputNumber
+                  label={t('充值返利百分比')}
+                  field={'quota_setting.topup_rebate_percent'}
+                  step={1}
+                  min={0}
+                  max={100}
+                  suffix={'%'}
+                  extraText={t('被邀请人充值时，按此百分比返利给邀请人')}
+                  placeholder={t('例如：10')}
+                  onChange={(value) =>
+                    setInputs({
+                      ...inputs,
+                      'quota_setting.topup_rebate_percent': String(value),
+                    })
+                  }
+                />
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={8} xl={8}>
+                <Form.InputNumber
+                  label={t('最大返利次数')}
+                  field={'quota_setting.topup_rebate_max_count'}
+                  step={1}
+                  min={0}
+                  suffix={t('次')}
+                  extraText={t('被邀请人前N次充值可获得返利，0表示不返利')}
+                  placeholder={t('例如：3')}
+                  onChange={(value) =>
+                    setInputs({
+                      ...inputs,
+                      'quota_setting.topup_rebate_max_count': String(value),
                     })
                   }
                 />

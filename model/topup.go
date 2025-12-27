@@ -6,6 +6,7 @@ import (
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/logger"
+	"github.com/QuantumNous/new-api/setting/operation_setting"
 
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
@@ -99,6 +100,9 @@ func Recharge(referenceId string, customerId string) (err error) {
 	}
 
 	RecordLog(topUp.UserId, LogTypeTopup, fmt.Sprintf("使用在线充值成功，充值金额: %v，支付金额：%d", logger.FormatQuota(int(quota)), topUp.Amount))
+
+	// 处理充值返利
+	ProcessTopupRebate(topUp.UserId, int(quota))
 
 	return nil
 }
@@ -303,6 +307,10 @@ func ManualCompleteTopUp(tradeNo string) error {
 
 	// 事务外记录日志，避免阻塞
 	RecordLog(userId, LogTypeTopup, fmt.Sprintf("管理员补单成功，充值金额: %v，支付金额：%f", logger.FormatQuota(quotaToAdd), payMoney))
+
+	// 处理充值返利
+	ProcessTopupRebate(userId, quotaToAdd)
+
 	return nil
 }
 func RechargeCreem(referenceId string, customerEmail string, customerName string) (err error) {
@@ -372,5 +380,88 @@ func RechargeCreem(referenceId string, customerEmail string, customerName string
 
 	RecordLog(topUp.UserId, LogTypeTopup, fmt.Sprintf("使用Creem充值成功，充值额度: %v，支付金额：%.2f", quota, topUp.Money))
 
+	// 处理充值返利
+	ProcessTopupRebate(topUp.UserId, int(quota))
+
 	return nil
+}
+
+// GetUserSuccessTopUpCount 获取用户充值成功的次数
+func GetUserSuccessTopUpCount(userId int) (int64, error) {
+	var count int64
+	err := DB.Model(&TopUp{}).Where("user_id = ? AND status = ?", userId, common.TopUpStatusSuccess).Count(&count).Error
+	return count, err
+}
+
+// ProcessTopupRebate 处理充值返利
+// userId: 充值用户ID
+// quota: 充值获得的额度
+func ProcessTopupRebate(userId int, quota int) {
+	common.SysLog(fmt.Sprintf("开始处理充值返利: userId=%d, quota=%d", userId, quota))
+
+	// 获取返利配置
+	quotaSetting := operation_setting.GetQuotaSetting()
+	rebatePercent := quotaSetting.TopupRebatePercent
+	rebateMaxCount := quotaSetting.TopupRebateMaxCount
+
+	common.SysLog(fmt.Sprintf("返利配置: rebatePercent=%d, rebateMaxCount=%d", rebatePercent, rebateMaxCount))
+
+	// 如果返利百分比为0或最大次数为0，不处理返利
+	if rebatePercent <= 0 || rebateMaxCount <= 0 {
+		common.SysLog("返利配置为0，跳过返利")
+		return
+	}
+
+	// 查询用户的邀请人
+	user, err := GetUserById(userId, false)
+	if err != nil {
+		common.SysLog(fmt.Sprintf("查询用户失败: %v", err))
+		return
+	}
+	if user.InviterId == 0 {
+		common.SysLog(fmt.Sprintf("用户 %d 没有邀请人，跳过返利", userId))
+		return
+	}
+
+	common.SysLog(fmt.Sprintf("用户 %d 的邀请人ID: %d", userId, user.InviterId))
+
+	// 查询用户充值成功次数
+	topupCount, err := GetUserSuccessTopUpCount(userId)
+	if err != nil {
+		common.SysLog(fmt.Sprintf("获取用户充值次数失败: %v", err))
+		return
+	}
+
+	common.SysLog(fmt.Sprintf("用户 %d 充值成功次数: %d", userId, topupCount))
+
+	// 判断是否超过最大返利次数
+	if int(topupCount) > rebateMaxCount {
+		common.SysLog(fmt.Sprintf("充值次数 %d 超过最大返利次数 %d，跳过返利", topupCount, rebateMaxCount))
+		return
+	}
+
+	// 计算返利额度
+	rebateQuota := quota * rebatePercent / 100
+	if rebateQuota <= 0 {
+		common.SysLog(fmt.Sprintf("返利额度为0，跳过返利: quota=%d, rebatePercent=%d", quota, rebatePercent))
+		return
+	}
+
+	common.SysLog(fmt.Sprintf("计算返利额度: %d * %d / 100 = %d", quota, rebatePercent, rebateQuota))
+
+	// 给邀请人增加返利额度（aff_quota 和 aff_history_quota）
+	err = DB.Model(&User{}).Where("id = ?", user.InviterId).Updates(map[string]interface{}{
+		"aff_quota":   gorm.Expr("aff_quota + ?", rebateQuota),
+		"aff_history": gorm.Expr("aff_history + ?", rebateQuota),
+	}).Error
+	if err != nil {
+		common.SysLog(fmt.Sprintf("充值返利失败: %v", err))
+		return
+	}
+
+	// 记录日志
+	inviterName, _ := GetUsernameById(user.InviterId, false)
+	userName, _ := GetUsernameById(userId, false)
+	RecordLog(user.InviterId, LogTypeSystem, fmt.Sprintf("邀请用户 %s 充值返利 %s（第%d次充值，返利比例%d%%）", userName, logger.LogQuota(rebateQuota), topupCount, rebatePercent))
+	common.SysLog(fmt.Sprintf("充值返利成功: 邀请人 %s 获得返利 %d，被邀请人 %s 第%d次充值", inviterName, rebateQuota, userName, topupCount))
 }
