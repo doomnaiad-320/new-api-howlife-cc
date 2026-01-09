@@ -142,18 +142,24 @@ func getPayMoney(amount int64, group string, promoDiscount float64) float64 {
 // validatePromoCode 验证优惠码并返回优惠码所属用户ID和折扣
 // 返回: promoUserId (0表示无效或未使用), promoDiscount (1.0表示无折扣)
 func validatePromoCode(promoCode string, currentUserId int) (int, float64) {
+	common.SysLog(fmt.Sprintf("validatePromoCode: promoCode=%s, currentUserId=%d", promoCode, currentUserId))
+
 	if promoCode == "" {
+		common.SysLog("validatePromoCode: promoCode is empty")
 		return 0, 1.0
 	}
 
 	// 查询优惠码对应的用户
 	promoUserId, err := model.GetUserIdByAffCode(promoCode)
+	common.SysLog(fmt.Sprintf("validatePromoCode: promoUserId=%d, err=%v", promoUserId, err))
 	if err != nil || promoUserId == 0 {
+		common.SysLog("validatePromoCode: invalid promo code")
 		return 0, 1.0
 	}
 
 	// 不能使用自己的优惠码
 	if promoUserId == currentUserId {
+		common.SysLog("validatePromoCode: cannot use own promo code")
 		return 0, 1.0
 	}
 
@@ -161,18 +167,23 @@ func validatePromoCode(promoCode string, currentUserId int) (int, float64) {
 	quotaSetting := operation_setting.GetQuotaSetting()
 	rebatePercent := quotaSetting.TopupRebatePercent
 	rebateMaxCount := quotaSetting.TopupRebateMaxCount
+	common.SysLog(fmt.Sprintf("validatePromoCode: rebatePercent=%d, rebateMaxCount=%d", rebatePercent, rebateMaxCount))
 
 	if rebatePercent <= 0 || rebateMaxCount <= 0 {
+		common.SysLog("validatePromoCode: rebate config is 0")
 		return 0, 1.0
 	}
 
 	// 检查当前用户的充值次数是否已超过限制
 	currentUser, err := model.GetUserById(currentUserId, false)
 	if err != nil || currentUser == nil {
+		common.SysLog("validatePromoCode: failed to get current user")
 		return 0, 1.0
 	}
+	common.SysLog(fmt.Sprintf("validatePromoCode: currentUser.TopupCount=%d", currentUser.TopupCount))
 	if currentUser.TopupCount >= rebateMaxCount {
 		// 用户充值次数已达上限，优惠码无效
+		common.SysLog("validatePromoCode: user topup count exceeded")
 		return 0, 1.0
 	}
 
@@ -183,6 +194,7 @@ func validatePromoCode(promoCode string, currentUserId int) (int, float64) {
 		promoDiscount = 0.01 // 最低1%
 	}
 
+	common.SysLog(fmt.Sprintf("validatePromoCode: SUCCESS promoDiscount=%f", promoDiscount))
 	return promoUserId, promoDiscount
 }
 

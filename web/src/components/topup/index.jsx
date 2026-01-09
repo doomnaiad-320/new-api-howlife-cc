@@ -525,7 +525,7 @@ const TopUp = () => {
     return amount + ' ' + t('元');
   };
 
-  const getAmount = async (value, promo) => {
+  const getAmount = async (value, promo, checkPromoValid = false) => {
     if (value === undefined) {
       value = topUpCount;
     }
@@ -541,11 +541,24 @@ const TopUp = () => {
       if (res !== undefined) {
         const { message, data } = res.data;
         if (message === 'success') {
-          setAmount(parseFloat(data));
-          // 如果有优惠码且金额变化，说明优惠码有效
-          if (promo && promo.length > 0) {
-            setPromoDiscount(1.0 - rebatePercent / 100);
-          } else {
+          const newAmount = parseFloat(data);
+          setAmount(newAmount);
+          // 如果有优惠码，需要验证是否有效（比较有无优惠码时的金额差异）
+          if (promo && promo.length > 0 && checkPromoValid) {
+            // 获取无优惠码时的金额进行比较
+            const resNoPromo = await API.post('/api/user/amount', {
+              amount: parseFloat(value),
+              promo_code: '',
+            });
+            if (resNoPromo?.data?.message === 'success') {
+              const amountNoPromo = parseFloat(resNoPromo.data.data);
+              if (newAmount < amountNoPromo) {
+                setPromoDiscount(1.0 - rebatePercent / 100);
+              } else {
+                setPromoDiscount(1.0);
+              }
+            }
+          } else if (!promo || promo.length === 0) {
             setPromoDiscount(1.0);
           }
         } else {
@@ -561,7 +574,7 @@ const TopUp = () => {
     setAmountLoading(false);
   };
 
-  const getStripeAmount = async (value, promo) => {
+  const getStripeAmount = async (value, promo, checkPromoValid = false) => {
     if (value === undefined) {
       value = topUpCount;
     }
@@ -577,11 +590,24 @@ const TopUp = () => {
       if (res !== undefined) {
         const { message, data } = res.data;
         if (message === 'success') {
-          setAmount(parseFloat(data));
-          // 如果有优惠码且金额变化，说明优惠码有效
-          if (promo && promo.length > 0) {
-            setPromoDiscount(1.0 - rebatePercent / 100);
-          } else {
+          const newAmount = parseFloat(data);
+          setAmount(newAmount);
+          // 如果有优惠码，需要验证是否有效（比较有无优惠码时的金额差异）
+          if (promo && promo.length > 0 && checkPromoValid) {
+            // 获取无优惠码时的金额进行比较
+            const resNoPromo = await API.post('/api/user/stripe/amount', {
+              amount: parseFloat(value),
+              promo_code: '',
+            });
+            if (resNoPromo?.data?.message === 'success') {
+              const amountNoPromo = parseFloat(resNoPromo.data.data);
+              if (newAmount < amountNoPromo) {
+                setPromoDiscount(1.0 - rebatePercent / 100);
+              } else {
+                setPromoDiscount(1.0);
+              }
+            }
+          } else if (!promo || promo.length === 0) {
             setPromoDiscount(1.0);
           }
         } else {
@@ -701,11 +727,11 @@ const TopUp = () => {
         promoCode={promoCode}
         setPromoCode={(value) => {
           setPromoCode(value);
-          // 当优惠码变化时，重新获取金额
+          // 当优惠码变化时，重新获取金额，并验证优惠码是否有效
           if (payWay === 'stripe') {
-            getStripeAmount(topUpCount, value);
+            getStripeAmount(topUpCount, value, true);
           } else {
-            getAmount(topUpCount, value);
+            getAmount(topUpCount, value, true);
           }
         }}
         promoDiscount={promoDiscount}

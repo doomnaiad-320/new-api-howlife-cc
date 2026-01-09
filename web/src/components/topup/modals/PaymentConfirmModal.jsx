@@ -20,7 +20,7 @@ For commercial licensing, please contact support@quantumnous.com
 import React from 'react';
 import { Modal, Typography, Card, Skeleton, Input } from '@douyinfe/semi-ui';
 import { SiAlipay, SiWechat, SiStripe } from 'react-icons/si';
-import { CreditCard, Tag } from 'lucide-react';
+import { CreditCard, Gift } from 'lucide-react';
 
 const { Text } = Typography;
 
@@ -212,12 +212,12 @@ const PaymentConfirmModal = ({
             {canUsePromoCode && (
               <div className='pt-3 border-t border-slate-200 dark:border-slate-600'>
                 <div className='flex items-center mb-2'>
-                  <Tag size={14} className='mr-2 text-emerald-600' />
+                  <Gift size={14} className='mr-2 text-red-500' />
                   <Text strong className='text-slate-700 dark:text-slate-200'>
                     {t('优惠码')}
                   </Text>
                   <Text className='ml-2 text-xs text-slate-500'>
-                    ({t('可享受')} {rebatePercent}% {t('折扣')})
+                    ({t('可叠加享受')} {rebatePercent}% {t('折扣')})
                   </Text>
                 </div>
                 <Input
