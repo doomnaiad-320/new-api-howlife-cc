@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -31,6 +32,7 @@ var stripeAdaptor = &StripeAdaptor{}
 type StripePayRequest struct {
 	Amount        int64  `json:"amount"`
 	PaymentMethod string `json:"payment_method"`
+	PromoCode     string `json:"promo_code"`
 }
 
 type StripeAdaptor struct {
@@ -47,7 +49,11 @@ func (*StripeAdaptor) RequestAmount(c *gin.Context, req *StripePayRequest) {
 		c.JSON(200, gin.H{"message": "error", "data": "获取用户分组失败"})
 		return
 	}
-	payMoney := getStripePayMoney(float64(req.Amount), group)
+
+	// 验证优惠码
+	_, promoDiscount := validatePromoCode(req.PromoCode, id)
+
+	payMoney := getStripePayMoney(float64(req.Amount), group, promoDiscount)
 	if payMoney <= 0.01 {
 		c.JSON(200, gin.H{"message": "error", "data": "充值金额过低"})
 		return
@@ -71,10 +77,18 @@ func (*StripeAdaptor) RequestPay(c *gin.Context, req *StripePayRequest) {
 
 	id := c.GetInt("id")
 	user, _ := model.GetUserById(id, false)
-	chargedMoney := GetChargedAmount(float64(req.Amount), *user)
 
+	// 验证优惠码
+	promoUserId, promoDiscount := validatePromoCode(req.PromoCode, id)
+
+	chargedMoney := GetChargedAmount(float64(req.Amount), *user, promoDiscount)
+
+	// 生成订单号，编码优惠码用户ID
 	reference := fmt.Sprintf("new-api-ref-%d-%d-%s", user.Id, time.Now().UnixMilli(), randstr.String(4))
 	referenceId := "ref_" + common.Sha1([]byte(reference))
+	if promoUserId > 0 {
+		referenceId = fmt.Sprintf("ref_PROMO%d_%s", promoUserId, common.Sha1([]byte(reference)))
+	}
 
 	payLink, err := genStripeLink(referenceId, user.StripeCustomer, user.Email, req.Amount)
 	if err != nil {
@@ -172,9 +186,36 @@ func sessionCompleted(event stripe.Event) {
 		return
 	}
 
+	// 解析订单号中的优惠码用户ID并处理返利
+	promoUserId := parseStripePromoUserIdFromTradeNo(referenceId)
+	if promoUserId > 0 {
+		// 获取充值额度用于计算返利
+		topUp := model.GetTopUpByTradeNo(referenceId)
+		if topUp != nil {
+			quotaToAdd := int(float64(topUp.Amount) * common.QuotaPerUnit)
+			processPromoRebate(promoUserId, quotaToAdd)
+		}
+	}
+
 	total, _ := strconv.ParseFloat(event.GetObjectValue("amount_total"), 64)
 	currency := strings.ToUpper(event.GetObjectValue("currency"))
 	log.Printf("收到款项：%s, %.2f(%s)", referenceId, total/100, currency)
+}
+
+// parseStripePromoUserIdFromTradeNo 从Stripe订单号中解析优惠码用户ID
+// 订单号格式: ref_PROMO{promoUserId}_{hash} 或 ref_{hash}
+func parseStripePromoUserIdFromTradeNo(tradeNo string) int {
+	// 使用正则表达式匹配 PROMO{数字}_
+	re := regexp.MustCompile(`PROMO(\d+)_`)
+	matches := re.FindStringSubmatch(tradeNo)
+	if len(matches) < 2 {
+		return 0
+	}
+	promoUserId, err := strconv.Atoi(matches[1])
+	if err != nil {
+		return 0
+	}
+	return promoUserId
 }
 
 func sessionExpired(event stripe.Event) {
@@ -249,16 +290,16 @@ func genStripeLink(referenceId string, customerId string, email string, amount i
 	return result.URL, nil
 }
 
-func GetChargedAmount(count float64, user model.User) float64 {
+func GetChargedAmount(count float64, user model.User, promoDiscount float64) float64 {
 	topUpGroupRatio := common.GetTopupGroupRatio(user.Group)
 	if topUpGroupRatio == 0 {
 		topUpGroupRatio = 1
 	}
 
-	return count * topUpGroupRatio
+	return count * topUpGroupRatio * promoDiscount
 }
 
-func getStripePayMoney(amount float64, group string) float64 {
+func getStripePayMoney(amount float64, group string, promoDiscount float64) float64 {
 	originalAmount := amount
 	if operation_setting.GetQuotaDisplayType() == operation_setting.QuotaDisplayTypeTokens {
 		amount = amount / common.QuotaPerUnit
@@ -275,7 +316,7 @@ func getStripePayMoney(amount float64, group string) float64 {
 			discount = ds
 		}
 	}
-	payMoney := amount * setting.StripeUnitPrice * topupGroupRatio * discount
+	payMoney := amount * setting.StripeUnitPrice * topupGroupRatio * discount * promoDiscount
 	return payMoney
 }
 

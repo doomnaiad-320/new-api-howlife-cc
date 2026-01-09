@@ -18,9 +18,9 @@ For commercial licensing, please contact support@quantumnous.com
 */
 
 import React from 'react';
-import { Modal, Typography, Card, Skeleton } from '@douyinfe/semi-ui';
+import { Modal, Typography, Card, Skeleton, Input } from '@douyinfe/semi-ui';
 import { SiAlipay, SiWechat, SiStripe } from 'react-icons/si';
-import { CreditCard } from 'lucide-react';
+import { CreditCard, Tag } from 'lucide-react';
 
 const { Text } = Typography;
 
@@ -39,9 +39,16 @@ const PaymentConfirmModal = ({
   // 新增：用于显示折扣明细
   amountNumber,
   discountRate,
+  // 优惠码相关
+  promoCode,
+  setPromoCode,
+  promoDiscount,
+  rebatePercent,
+  canUsePromoCode,
 }) => {
   const hasDiscount =
     discountRate && discountRate > 0 && discountRate < 1 && amountNumber > 0;
+  const hasPromoDiscount = promoDiscount && promoDiscount < 1;
   const originalAmount = hasDiscount ? amountNumber / discountRate : 0;
   const discountAmount = hasDiscount ? originalAmount - amountNumber : 0;
   return (
@@ -200,6 +207,33 @@ const PaymentConfirmModal = ({
                 })()}
               </div>
             </div>
+
+            {/* 优惠码输入框 - 仅当 canUsePromoCode 为 true 时显示 */}
+            {canUsePromoCode && (
+              <div className='pt-3 border-t border-slate-200 dark:border-slate-600'>
+                <div className='flex items-center mb-2'>
+                  <Tag size={14} className='mr-2 text-emerald-600' />
+                  <Text strong className='text-slate-700 dark:text-slate-200'>
+                    {t('优惠码')}
+                  </Text>
+                  <Text className='ml-2 text-xs text-slate-500'>
+                    ({t('可享受')} {rebatePercent}% {t('折扣')})
+                  </Text>
+                </div>
+                <Input
+                  placeholder={t('输入优惠码享受额外折扣')}
+                  value={promoCode}
+                  onChange={setPromoCode}
+                  disabled={confirmLoading}
+                  showClear
+                />
+                {hasPromoDiscount && (
+                  <Text className='text-xs text-emerald-600 mt-1 block'>
+                    ✓ {t('优惠码有效，已享受')} {rebatePercent}% {t('折扣')}
+                  </Text>
+                )}
+              </div>
+            )}
           </div>
         </Card>
       </div>

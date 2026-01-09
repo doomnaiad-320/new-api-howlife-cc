@@ -104,6 +104,16 @@ const TopUp = () => {
   const [rebatePercent, setRebatePercent] = useState(0);
   const [rebateMaxCount, setRebateMaxCount] = useState(0);
 
+  // 用户充值次数（用于判断优惠码是否可用）
+  const [userTopupCount, setUserTopupCount] = useState(0);
+
+  // 优惠码相关状态
+  const [promoCode, setPromoCode] = useState('');
+  const [promoDiscount, setPromoDiscount] = useState(1.0); // 1.0 表示无折扣
+
+  // 计算优惠码是否可用：rebatePercent > 0 且 rebateMaxCount > 0 且 userTopupCount < rebateMaxCount
+  const canUsePromoCode = rebatePercent > 0 && rebateMaxCount > 0 && userTopupCount < rebateMaxCount;
+
   const topUp = async () => {
     if (redemptionCode === '') {
       showInfo(t('请输入兑换码！'));
@@ -207,12 +217,14 @@ const TopUp = () => {
         res = await API.post('/api/user/stripe/pay', {
           amount: parseInt(topUpCount),
           payment_method: 'stripe',
+          promo_code: promoCode,
         });
       } else {
         // 普通支付请求
         res = await API.post('/api/user/pay', {
           amount: parseInt(topUpCount),
           payment_method: payWay,
+          promo_code: promoCode,
         });
       }
 
@@ -258,6 +270,9 @@ const TopUp = () => {
     } finally {
       setOpen(false);
       setConfirmLoading(false);
+      // 重置优惠码状态
+      setPromoCode('');
+      setPromoDiscount(1.0);
     }
   };
 
@@ -430,6 +445,7 @@ const TopUp = () => {
         // 获取返利配置
         setRebatePercent(data.topup_rebate_percent || 0);
         setRebateMaxCount(data.topup_rebate_max_count || 0);
+        setUserTopupCount(data.user_topup_count || 0);
       } else {
         console.error('获取充值配置失败:', data);
       }
@@ -509,19 +525,29 @@ const TopUp = () => {
     return amount + ' ' + t('元');
   };
 
-  const getAmount = async (value) => {
+  const getAmount = async (value, promo) => {
     if (value === undefined) {
       value = topUpCount;
+    }
+    if (promo === undefined) {
+      promo = promoCode;
     }
     setAmountLoading(true);
     try {
       const res = await API.post('/api/user/amount', {
         amount: parseFloat(value),
+        promo_code: promo,
       });
       if (res !== undefined) {
         const { message, data } = res.data;
         if (message === 'success') {
           setAmount(parseFloat(data));
+          // 如果有优惠码且金额变化，说明优惠码有效
+          if (promo && promo.length > 0) {
+            setPromoDiscount(1.0 - rebatePercent / 100);
+          } else {
+            setPromoDiscount(1.0);
+          }
         } else {
           setAmount(0);
           Toast.error({ content: '错误：' + data, id: 'getAmount' });
@@ -535,19 +561,29 @@ const TopUp = () => {
     setAmountLoading(false);
   };
 
-  const getStripeAmount = async (value) => {
+  const getStripeAmount = async (value, promo) => {
     if (value === undefined) {
       value = topUpCount;
+    }
+    if (promo === undefined) {
+      promo = promoCode;
     }
     setAmountLoading(true);
     try {
       const res = await API.post('/api/user/stripe/amount', {
         amount: parseFloat(value),
+        promo_code: promo,
       });
       if (res !== undefined) {
         const { message, data } = res.data;
         if (message === 'success') {
           setAmount(parseFloat(data));
+          // 如果有优惠码且金额变化，说明优惠码有效
+          if (promo && promo.length > 0) {
+            setPromoDiscount(1.0 - rebatePercent / 100);
+          } else {
+            setPromoDiscount(1.0);
+          }
         } else {
           setAmount(0);
           Toast.error({ content: '错误：' + data, id: 'getAmount' });
@@ -662,6 +698,19 @@ const TopUp = () => {
         payMethods={payMethods}
         amountNumber={amount}
         discountRate={topupInfo?.discount?.[topUpCount] || 1.0}
+        promoCode={promoCode}
+        setPromoCode={(value) => {
+          setPromoCode(value);
+          // 当优惠码变化时，重新获取金额
+          if (payWay === 'stripe') {
+            getStripeAmount(topUpCount, value);
+          } else {
+            getAmount(topUpCount, value);
+          }
+        }}
+        promoDiscount={promoDiscount}
+        rebatePercent={rebatePercent}
+        canUsePromoCode={canUsePromoCode}
       />
 
       {/* 充值账单模态框 */}

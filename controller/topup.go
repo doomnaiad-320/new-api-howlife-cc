@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/url"
+	"regexp"
 	"strconv"
 	"sync"
 	"time"
@@ -51,6 +52,16 @@ func GetTopUpInfo(c *gin.Context) {
 	// 获取返利配置
 	quotaSetting := operation_setting.GetQuotaSetting()
 
+	// 获取当前用户的充值次数
+	userId := c.GetInt("id")
+	userTopupCount := 0
+	if userId > 0 {
+		user, err := model.GetUserById(userId, false)
+		if err == nil && user != nil {
+			userTopupCount = user.TopupCount
+		}
+	}
+
 	data := gin.H{
 		"enable_online_topup":    operation_setting.PayAddress != "" && operation_setting.EpayId != "" && operation_setting.EpayKey != "",
 		"enable_stripe_topup":    setting.StripeApiSecret != "" && setting.StripeWebhookSecret != "" && setting.StripePriceId != "",
@@ -63,6 +74,7 @@ func GetTopUpInfo(c *gin.Context) {
 		"discount":               operation_setting.GetPaymentSetting().AmountDiscount,
 		"topup_rebate_percent":   quotaSetting.TopupRebatePercent,
 		"topup_rebate_max_count": quotaSetting.TopupRebateMaxCount,
+		"user_topup_count":       userTopupCount,
 	}
 	common.ApiSuccess(c, data)
 }
@@ -71,11 +83,13 @@ type EpayRequest struct {
 	Amount        int64  `json:"amount"`
 	PaymentMethod string `json:"payment_method"`
 	TopUpCode     string `json:"top_up_code"`
+	PromoCode     string `json:"promo_code"`
 }
 
 type AmountRequest struct {
 	Amount    int64  `json:"amount"`
 	TopUpCode string `json:"top_up_code"`
+	PromoCode string `json:"promo_code"`
 }
 
 func GetEpayClient() *epay.Client {
@@ -92,9 +106,9 @@ func GetEpayClient() *epay.Client {
 	return withUrl
 }
 
-func getPayMoney(amount int64, group string) float64 {
+func getPayMoney(amount int64, group string, promoDiscount float64) float64 {
 	dAmount := decimal.NewFromInt(amount)
-	// 充值金额以“展示类型”为准：
+	// 充值金额以"展示类型"为准：
 	// - USD/CNY: 前端传 amount 为金额单位；TOKENS: 前端传 tokens，需要换成 USD 金额
 	if operation_setting.GetQuotaDisplayType() == operation_setting.QuotaDisplayTypeTokens {
 		dQuotaPerUnit := decimal.NewFromFloat(common.QuotaPerUnit)
@@ -117,9 +131,115 @@ func getPayMoney(amount int64, group string) float64 {
 	}
 	dDiscount := decimal.NewFromFloat(discount)
 
-	payMoney := dAmount.Mul(dPrice).Mul(dTopupGroupRatio).Mul(dDiscount)
+	// 应用优惠码折扣 (promoDiscount 为 0-1 之间的值，例如 0.9 表示 9 折)
+	dPromoDiscount := decimal.NewFromFloat(promoDiscount)
+
+	payMoney := dAmount.Mul(dPrice).Mul(dTopupGroupRatio).Mul(dDiscount).Mul(dPromoDiscount)
 
 	return payMoney.InexactFloat64()
+}
+
+// validatePromoCode 验证优惠码并返回优惠码所属用户ID和折扣
+// 返回: promoUserId (0表示无效或未使用), promoDiscount (1.0表示无折扣)
+func validatePromoCode(promoCode string, currentUserId int) (int, float64) {
+	if promoCode == "" {
+		return 0, 1.0
+	}
+
+	// 查询优惠码对应的用户
+	promoUserId, err := model.GetUserIdByAffCode(promoCode)
+	if err != nil || promoUserId == 0 {
+		return 0, 1.0
+	}
+
+	// 不能使用自己的优惠码
+	if promoUserId == currentUserId {
+		return 0, 1.0
+	}
+
+	// 获取返利配置
+	quotaSetting := operation_setting.GetQuotaSetting()
+	rebatePercent := quotaSetting.TopupRebatePercent
+	rebateMaxCount := quotaSetting.TopupRebateMaxCount
+
+	if rebatePercent <= 0 || rebateMaxCount <= 0 {
+		return 0, 1.0
+	}
+
+	// 检查当前用户的充值次数是否已超过限制
+	currentUser, err := model.GetUserById(currentUserId, false)
+	if err != nil || currentUser == nil {
+		return 0, 1.0
+	}
+	if currentUser.TopupCount >= rebateMaxCount {
+		// 用户充值次数已达上限，优惠码无效
+		return 0, 1.0
+	}
+
+	// 折扣 = 1 - 返利百分比/100
+	// 例如返利10%，则用户享受 90% 的价格（9折）
+	promoDiscount := 1.0 - float64(rebatePercent)/100.0
+	if promoDiscount < 0.01 {
+		promoDiscount = 0.01 // 最低1%
+	}
+
+	return promoUserId, promoDiscount
+}
+
+// parsePromoUserIdFromTradeNo 从订单号中解析优惠码用户ID
+// 订单号格式: USR{userId}PROMO{promoUserId}NO{randomStr} 或 USR{userId}NO{randomStr}
+func parsePromoUserIdFromTradeNo(tradeNo string) int {
+	// 使用正则表达式匹配 PROMO{数字}
+	re := regexp.MustCompile(`PROMO(\d+)NO`)
+	matches := re.FindStringSubmatch(tradeNo)
+	if len(matches) < 2 {
+		return 0
+	}
+	promoUserId, err := strconv.Atoi(matches[1])
+	if err != nil {
+		return 0
+	}
+	return promoUserId
+}
+
+// processPromoRebate 处理优惠码返利
+// promoUserId: 优惠码所有者的用户ID
+// quota: 充值获得的额度
+func processPromoRebate(promoUserId int, quota int) {
+	common.SysLog(fmt.Sprintf("开始处理优惠码返利: promoUserId=%d, quota=%d", promoUserId, quota))
+
+	// 获取返利配置
+	quotaSetting := operation_setting.GetQuotaSetting()
+	rebatePercent := quotaSetting.TopupRebatePercent
+
+	common.SysLog(fmt.Sprintf("返利配置: rebatePercent=%d", rebatePercent))
+
+	// 如果返利百分比为0，不处理返利
+	if rebatePercent <= 0 {
+		common.SysLog("返利配置为0，跳过返利")
+		return
+	}
+
+	// 计算返利额度
+	rebateQuota := quota * rebatePercent / 100
+	if rebateQuota <= 0 {
+		common.SysLog(fmt.Sprintf("返利额度为0，跳过返利: quota=%d, rebatePercent=%d", quota, rebatePercent))
+		return
+	}
+
+	common.SysLog(fmt.Sprintf("计算返利额度: %d * %d / 100 = %d", quota, rebatePercent, rebateQuota))
+
+	// 给优惠码所有者增加返利额度（aff_quota 和 aff_history_quota）
+	err := model.IncreaseUserAffQuota(promoUserId, rebateQuota)
+	if err != nil {
+		common.SysLog(fmt.Sprintf("优惠码返利失败: %v", err))
+		return
+	}
+
+	// 记录日志
+	promoUserName, _ := model.GetUsernameById(promoUserId, false)
+	model.RecordLog(promoUserId, model.LogTypeSystem, fmt.Sprintf("优惠码被使用，获得返利 %s（返利比例%d%%）", logger.LogQuota(rebateQuota), rebatePercent))
+	common.SysLog(fmt.Sprintf("优惠码返利成功: 用户 %s 获得返利 %d", promoUserName, rebateQuota))
 }
 
 func getMinTopup() int64 {
@@ -150,7 +270,11 @@ func RequestEpay(c *gin.Context) {
 		c.JSON(200, gin.H{"message": "error", "data": "获取用户分组失败"})
 		return
 	}
-	payMoney := getPayMoney(req.Amount, group)
+
+	// 验证优惠码
+	promoUserId, promoDiscount := validatePromoCode(req.PromoCode, id)
+
+	payMoney := getPayMoney(req.Amount, group, promoDiscount)
 	if payMoney < 0.01 {
 		c.JSON(200, gin.H{"message": "error", "data": "充值金额过低"})
 		return
@@ -164,8 +288,16 @@ func RequestEpay(c *gin.Context) {
 	callBackAddress := service.GetCallbackAddress()
 	returnUrl, _ := url.Parse(system_setting.ServerAddress + "/console/log")
 	notifyUrl, _ := url.Parse(callBackAddress + "/api/user/epay/notify")
+
+	// 生成订单号，编码优惠码用户ID
+	// 格式: USR{userId}PROMO{promoUserId}NO{randomStr} 或 USR{userId}NO{randomStr}
 	tradeNo := fmt.Sprintf("%s%d", common.GetRandomString(6), time.Now().Unix())
-	tradeNo = fmt.Sprintf("USR%dNO%s", id, tradeNo)
+	if promoUserId > 0 {
+		tradeNo = fmt.Sprintf("USR%dPROMO%dNO%s", id, promoUserId, tradeNo)
+	} else {
+		tradeNo = fmt.Sprintf("USR%dNO%s", id, tradeNo)
+	}
+
 	client := GetEpayClient()
 	if client == nil {
 		c.JSON(200, gin.H{"message": "error", "data": "当前管理员未配置支付信息"})
@@ -291,8 +423,16 @@ func EpayNotify(c *gin.Context) {
 			}
 			log.Printf("易支付回调更新用户成功 %v", topUp)
 			model.RecordLog(topUp.UserId, model.LogTypeTopup, fmt.Sprintf("使用在线充值成功，充值金额: %v，支付金额：%f", logger.LogQuota(quotaToAdd), topUp.Money))
-			// 处理充值返利
-			model.ProcessTopupRebate(topUp.UserId, quotaToAdd)
+
+			// 解析订单号中的优惠码用户ID并处理返利
+			promoUserId := parsePromoUserIdFromTradeNo(verifyInfo.ServiceTradeNo)
+			if promoUserId > 0 {
+				// 使用优惠码充值，给优惠码所有者返利
+				processPromoRebate(promoUserId, quotaToAdd)
+			} else {
+				// 普通充值返利（基于邀请关系）
+				model.ProcessTopupRebate(topUp.UserId, quotaToAdd)
+			}
 		}
 	} else {
 		log.Printf("易支付异常回调: %v", verifyInfo)
@@ -317,7 +457,11 @@ func RequestAmount(c *gin.Context) {
 		c.JSON(200, gin.H{"message": "error", "data": "获取用户分组失败"})
 		return
 	}
-	payMoney := getPayMoney(req.Amount, group)
+
+	// 验证优惠码
+	_, promoDiscount := validatePromoCode(req.PromoCode, id)
+
+	payMoney := getPayMoney(req.Amount, group, promoDiscount)
 	if payMoney <= 0.01 {
 		c.JSON(200, gin.H{"message": "error", "data": "充值金额过低"})
 		return

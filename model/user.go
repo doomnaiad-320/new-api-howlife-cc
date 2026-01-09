@@ -814,6 +814,18 @@ func decreaseUserQuota(id int, quota int) (err error) {
 	return err
 }
 
+// IncreaseUserAffQuota 增加用户的邀请额度（aff_quota 和 aff_history）
+func IncreaseUserAffQuota(id int, quota int) (err error) {
+	if quota <= 0 {
+		return errors.New("quota 必须大于0")
+	}
+	err = DB.Model(&User{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"aff_quota":   gorm.Expr("aff_quota + ?", quota),
+		"aff_history": gorm.Expr("aff_history + ?", quota),
+	}).Error
+	return err
+}
+
 func DeltaUpdateUserQuota(id int, delta int) (err error) {
 	if delta == 0 {
 		return nil
