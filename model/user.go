@@ -47,6 +47,7 @@ type User struct {
 	Setting          string         `json:"setting" gorm:"type:text;column:setting"`
 	Remark           string         `json:"remark,omitempty" gorm:"type:varchar(255)" validate:"max=255"`
 	StripeCustomer   string         `json:"stripe_customer" gorm:"type:varchar(64);column:stripe_customer;index"`
+	TopupCount       int            `json:"topup_count" gorm:"type:int;default:0;column:topup_count"` // 充值成功次数
 }
 
 func (user *User) ToBaseUser() *UserBase {

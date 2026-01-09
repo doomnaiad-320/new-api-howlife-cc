@@ -91,6 +91,8 @@ const TopUp = () => {
   // 预设充值额度选项
   const [presetAmounts, setPresetAmounts] = useState([]);
   const [selectedPreset, setSelectedPreset] = useState(null);
+  // 预设金额对应的实付金额缓存 { amount: payMoney }
+  const [presetPayAmounts, setPresetPayAmounts] = useState({});
 
   // 充值配置信息
   const [topupInfo, setTopupInfo] = useState({
@@ -582,14 +584,12 @@ const TopUp = () => {
   };
 
   // 选择预设充值额度
-  const selectPresetAmount = (preset) => {
+  const selectPresetAmount = async (preset) => {
     setTopUpCount(preset.value);
     setSelectedPreset(preset.value);
 
-    // 计算实际支付金额，考虑折扣
-    const discount = preset.discount || topupInfo.discount[preset.value] || 1.0;
-    const discountedAmount = preset.value * priceRatio * discount;
-    setAmount(discountedAmount);
+    // 调用后端接口获取正确的实付金额（包含分组倍率等计算）
+    await getAmount(preset.value);
   };
 
   // 格式化大数字显示
@@ -604,6 +604,33 @@ const TopUp = () => {
       value: minAmount * multiplier,
     }));
   };
+
+  // 批量获取预设金额的实付金额
+  const fetchPresetPayAmounts = async (presets) => {
+    const amounts = {};
+    await Promise.all(
+      presets.map(async (preset) => {
+        try {
+          const res = await API.post('/api/user/amount', {
+            amount: parseFloat(preset.value),
+          });
+          if (res?.data?.message === 'success') {
+            amounts[preset.value] = parseFloat(res.data.data);
+          }
+        } catch (err) {
+          console.log('获取预设金额实付失败:', err);
+        }
+      })
+    );
+    setPresetPayAmounts(amounts);
+  };
+
+  // 当预设金额列表变化时，获取对应的实付金额
+  useEffect(() => {
+    if (presetAmounts.length > 0) {
+      fetchPresetPayAmounts(presetAmounts);
+    }
+  }, [presetAmounts]);
 
   return (
     <div className='w-full max-w-7xl mx-auto relative min-h-screen lg:min-h-0 mt-[60px] px-2'>
@@ -713,6 +740,7 @@ const TopUp = () => {
               onOpenHistory={handleOpenHistory}
               rebatePercent={rebatePercent}
               rebateMaxCount={rebateMaxCount}
+              presetPayAmounts={presetPayAmounts}
             />
           </div>
 

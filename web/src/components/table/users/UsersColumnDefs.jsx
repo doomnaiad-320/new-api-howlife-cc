@@ -188,6 +188,9 @@ const renderInviteInfo = (text, record, t) => {
             ? t('无邀请人')
             : `${t('邀请人')}: ${record.inviter_id}`}
         </Tag>
+        <Tag color='white' shape='circle' className='!text-xs'>
+          {t('充值')}: {renderNumber(record.topup_count)}
+        </Tag>
       </Space>
     </div>
   );

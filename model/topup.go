@@ -87,7 +87,11 @@ func Recharge(referenceId string, customerId string) (err error) {
 		}
 
 		quota = topUp.Money * common.QuotaPerUnit
-		err = tx.Model(&User{}).Where("id = ?", topUp.UserId).Updates(map[string]interface{}{"stripe_customer": customerId, "quota": gorm.Expr("quota + ?", quota)}).Error
+		err = tx.Model(&User{}).Where("id = ?", topUp.UserId).Updates(map[string]interface{}{
+			"stripe_customer": customerId,
+			"quota":           gorm.Expr("quota + ?", quota),
+			"topup_count":     gorm.Expr("topup_count + 1"),
+		}).Error
 		if err != nil {
 			return err
 		}
@@ -292,7 +296,10 @@ func ManualCompleteTopUp(tradeNo string) error {
 		}
 
 		// 增加用户额度（立即写库，保持一致性）
-		if err := tx.Model(&User{}).Where("id = ?", topUp.UserId).Update("quota", gorm.Expr("quota + ?", quotaToAdd)).Error; err != nil {
+		if err := tx.Model(&User{}).Where("id = ?", topUp.UserId).Updates(map[string]interface{}{
+			"quota":       gorm.Expr("quota + ?", quotaToAdd),
+			"topup_count": gorm.Expr("topup_count + 1"),
+		}).Error; err != nil {
 			return err
 		}
 
@@ -348,7 +355,8 @@ func RechargeCreem(referenceId string, customerEmail string, customerName string
 
 		// 构建更新字段，优先使用邮箱，如果邮箱为空则使用用户名
 		updateFields := map[string]interface{}{
-			"quota": gorm.Expr("quota + ?", quota),
+			"quota":       gorm.Expr("quota + ?", quota),
+			"topup_count": gorm.Expr("topup_count + 1"),
 		}
 
 		// 如果有客户邮箱，尝试更新用户邮箱（仅当用户邮箱为空时）
@@ -425,17 +433,13 @@ func ProcessTopupRebate(userId int, quota int) {
 
 	common.SysLog(fmt.Sprintf("用户 %d 的邀请人ID: %d", userId, user.InviterId))
 
-	// 查询用户充值成功次数
-	topupCount, err := GetUserSuccessTopUpCount(userId)
-	if err != nil {
-		common.SysLog(fmt.Sprintf("获取用户充值次数失败: %v", err))
-		return
-	}
+	// 查询用户充值成功次数（从 user 表读取，已在充值时 +1）
+	topupCount := user.TopupCount
 
 	common.SysLog(fmt.Sprintf("用户 %d 充值成功次数: %d", userId, topupCount))
 
 	// 判断是否超过最大返利次数
-	if int(topupCount) > rebateMaxCount {
+	if topupCount > rebateMaxCount {
 		common.SysLog(fmt.Sprintf("充值次数 %d 超过最大返利次数 %d，跳过返利", topupCount, rebateMaxCount))
 		return
 	}
