@@ -8,13 +8,16 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/constant"
 	"github.com/QuantumNous/new-api/dto"
 	"github.com/QuantumNous/new-api/model"
 	relayconstant "github.com/QuantumNous/new-api/relay/constant"
+	relayhelper "github.com/QuantumNous/new-api/relay/helper"
 	"github.com/QuantumNous/new-api/service"
+	"github.com/QuantumNous/new-api/setting/operation_setting"
 	"github.com/QuantumNous/new-api/setting/ratio_setting"
 	"github.com/QuantumNous/new-api/types"
 
@@ -97,29 +100,32 @@ func Distribute() func(c *gin.Context) {
 						common.SetContextKey(c, constant.ContextKeyUsingGroup, usingGroup)
 					}
 				}
-				channel, selectGroup, err = service.CacheGetRandomSatisfiedChannel(&service.RetryParam{
-					Ctx:        c,
-					ModelName:  modelRequest.Model,
-					TokenGroup: usingGroup,
-					Retry:      common.GetPointer(0),
-				})
-				if err != nil {
-					showGroup := usingGroup
-					if usingGroup == "auto" {
-						showGroup = fmt.Sprintf("auto(%s)", selectGroup)
-					}
-					message := fmt.Sprintf("获取分组 %s 下模型 %s 的可用渠道失败（distributor）: %s", showGroup, modelRequest.Model, err.Error())
-					// 如果错误，但是渠道不为空，说明是数据库一致性问题
-					//if channel != nil {
-					//	common.SysError(fmt.Sprintf("渠道不存在：%d", channel.Id))
-					//	message = "数据库一致性已被破坏，请联系管理员"
-					//}
-					abortWithOpenAiMessage(c, http.StatusServiceUnavailable, message, string(types.ErrorCodeModelNotFound))
-					return
-				}
+				channel = pickTrafficSplitChannel(c, modelRequest.Model)
 				if channel == nil {
-					abortWithOpenAiMessage(c, http.StatusServiceUnavailable, fmt.Sprintf("分组 %s 下模型 %s 无可用渠道（distributor）", usingGroup, modelRequest.Model), string(types.ErrorCodeModelNotFound))
-					return
+					channel, selectGroup, err = service.CacheGetRandomSatisfiedChannel(&service.RetryParam{
+						Ctx:        c,
+						ModelName:  modelRequest.Model,
+						TokenGroup: usingGroup,
+						Retry:      common.GetPointer(0),
+					})
+					if err != nil {
+						showGroup := usingGroup
+						if usingGroup == "auto" {
+							showGroup = fmt.Sprintf("auto(%s)", selectGroup)
+						}
+						message := fmt.Sprintf("获取分组 %s 下模型 %s 的可用渠道失败（distributor）: %s", showGroup, modelRequest.Model, err.Error())
+						// 如果错误，但是渠道不为空，说明是数据库一致性问题
+						//if channel != nil {
+						//	common.SysError(fmt.Sprintf("渠道不存在：%d", channel.Id))
+						//	message = "数据库一致性已被破坏，请联系管理员"
+						//}
+						abortWithOpenAiMessage(c, http.StatusServiceUnavailable, message, string(types.ErrorCodeModelNotFound))
+						return
+					}
+					if channel == nil {
+						abortWithOpenAiMessage(c, http.StatusServiceUnavailable, fmt.Sprintf("分组 %s 下模型 %s 无可用渠道（distributor）", usingGroup, modelRequest.Model), string(types.ErrorCodeModelNotFound))
+						return
+					}
 				}
 			}
 		}
@@ -301,6 +307,173 @@ func getModelRequest(c *gin.Context) (*ModelRequest, bool, error) {
 		common.SetContextKey(c, constant.ContextKeyTokenGroup, modelRequest.Group)
 	}
 	return &modelRequest, shouldSelectChannel, nil
+}
+
+func pickTrafficSplitChannel(c *gin.Context, modelName string) *model.Channel {
+	setting := operation_setting.GetTrafficSplitterSetting()
+	if setting == nil || !setting.Enabled || len(setting.Rules) == 0 {
+		return nil
+	}
+	if modelName == "" {
+		return nil
+	}
+	rule := matchTrafficSplitRule(setting.Rules, modelName)
+	if rule == nil {
+		return nil
+	}
+	if rule.ChannelAId <= 0 || rule.ChannelBId <= 0 || rule.Threshold < 0 {
+		return nil
+	}
+	promptTokens, err := estimatePromptTokensForSplit(c, modelName)
+	if err != nil {
+		return nil
+	}
+	targetId := rule.ChannelAId
+	if promptTokens >= rule.Threshold {
+		targetId = rule.ChannelBId
+	}
+	channel, err := model.GetChannelById(targetId, true)
+	if err != nil {
+		return nil
+	}
+	if !channelAvailableForSplit(c, channel, modelName) {
+		return nil
+	}
+	return channel
+}
+
+func matchTrafficSplitRule(rules []operation_setting.TrafficSplitterRule, modelName string) *operation_setting.TrafficSplitterRule {
+	normalized := ratio_setting.FormatMatchingModelName(modelName)
+	for i := range rules {
+		rule := rules[i]
+		if rule.Model == "" {
+			continue
+		}
+		if strings.EqualFold(rule.Model, modelName) {
+			return &rules[i]
+		}
+		if normalized != "" && ratio_setting.FormatMatchingModelName(rule.Model) == normalized {
+			return &rules[i]
+		}
+	}
+	return nil
+}
+
+func channelAvailableForSplit(c *gin.Context, channel *model.Channel, modelName string) bool {
+	if channel == nil || channel.Status != common.ChannelStatusEnabled {
+		return false
+	}
+	if !channelSupportsModel(channel, modelName) {
+		return false
+	}
+	usingGroup := common.GetContextKeyString(c, constant.ContextKeyUsingGroup)
+	if usingGroup == "" {
+		return true
+	}
+	if usingGroup == "auto" {
+		userGroup := common.GetContextKeyString(c, constant.ContextKeyUserGroup)
+		autoGroups := service.GetUserAutoGroup(userGroup)
+		if len(autoGroups) == 0 {
+			return false
+		}
+		for _, group := range autoGroups {
+			if channelInGroup(channel, group) {
+				return true
+			}
+		}
+		return false
+	}
+	return channelInGroup(channel, usingGroup)
+}
+
+func channelSupportsModel(channel *model.Channel, modelName string) bool {
+	if channel == nil || modelName == "" {
+		return false
+	}
+	normalized := ratio_setting.FormatMatchingModelName(modelName)
+	models := channel.GetModels()
+	for _, model := range models {
+		model = strings.TrimSpace(model)
+		if model == "" {
+			continue
+		}
+		if strings.EqualFold(model, modelName) {
+			return true
+		}
+		if normalized != "" && ratio_setting.FormatMatchingModelName(model) == normalized {
+			return true
+		}
+	}
+	return false
+}
+
+func channelInGroup(channel *model.Channel, group string) bool {
+	if group == "" || channel == nil {
+		return false
+	}
+	groups := channel.GetGroups()
+	for _, g := range groups {
+		if g == group {
+			return true
+		}
+	}
+	return false
+}
+
+func estimatePromptTokensForSplit(c *gin.Context, modelName string) (int, error) {
+	relayMode := relayconstant.Path2RelayMode(c.Request.URL.Path)
+	relayFormat, ok := relayFormatForSplit(relayMode)
+	if !ok {
+		return 0, nil
+	}
+	request, err := relayhelper.GetAndValidateRequest(c, relayFormat)
+	if err != nil {
+		return 0, err
+	}
+	meta := request.GetTokenCountMeta()
+	if meta == nil {
+		return 0, nil
+	}
+	promptTokens := 0
+	if meta.TokenType == types.TokenTypeTextNumber {
+		promptTokens += utf8.RuneCountInString(meta.CombineText)
+	} else {
+		promptTokens += service.CountTextToken(meta.CombineText, modelName)
+	}
+	if relayFormat == types.RelayFormatOpenAI {
+		promptTokens += meta.ToolsCount * 8
+		promptTokens += meta.MessagesCount * 3
+		promptTokens += meta.NameCount * 3
+		promptTokens += 3
+	}
+	return promptTokens, nil
+}
+
+func relayFormatForSplit(relayMode int) (types.RelayFormat, bool) {
+	switch relayMode {
+	case relayconstant.RelayModeChatCompletions,
+		relayconstant.RelayModeCompletions,
+		relayconstant.RelayModeModerations:
+		return types.RelayFormatOpenAI, true
+	case relayconstant.RelayModeEmbeddings:
+		return types.RelayFormatEmbedding, true
+	case relayconstant.RelayModeResponses:
+		return types.RelayFormatOpenAIResponses, true
+	case relayconstant.RelayModeRerank:
+		return types.RelayFormatRerank, true
+	case relayconstant.RelayModeGemini:
+		return types.RelayFormatGemini, true
+	case relayconstant.RelayModeImagesGenerations,
+		relayconstant.RelayModeImagesEdits,
+		relayconstant.RelayModeEdits:
+		return types.RelayFormatOpenAIImage, true
+	case relayconstant.RelayModeAudioSpeech,
+		relayconstant.RelayModeAudioTranscription,
+		relayconstant.RelayModeAudioTranslation:
+		return types.RelayFormatOpenAIAudio, true
+	default:
+		return "", false
+	}
 }
 
 func SetupContextForSelectedChannel(c *gin.Context, channel *model.Channel, modelName string) *types.NewAPIError {

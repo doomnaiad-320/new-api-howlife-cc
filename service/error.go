@@ -81,6 +81,39 @@ func ClaudeErrorWrapperLocal(err error, code string, statusCode int) *dto.Claude
 	return claudeErr
 }
 
+const upstreamInsufficientQuotaMessage = "服务断线重连中，请稍候"
+
+func isUpstreamInsufficientQuotaMessage(message string) bool {
+	if message == "" {
+		return false
+	}
+	lowerMessage := strings.ToLower(message)
+	if strings.Contains(lowerMessage, "insufficient_quota") ||
+		strings.Contains(lowerMessage, "insufficient quota") ||
+		strings.Contains(lowerMessage, "quota_not_enough") ||
+		strings.Contains(lowerMessage, "exceeded your current quota") {
+		return true
+	}
+	if strings.Contains(message, "余额不足") || strings.Contains(message, "额度不足") {
+		return true
+	}
+	return false
+}
+
+func isUpstreamInsufficientQuotaError(openAIError types.OpenAIError) bool {
+	lowerType := strings.ToLower(openAIError.Type)
+	if lowerType == "insufficient_quota" || lowerType == "insufficient_user_quota" {
+		return true
+	}
+	lowerCode := strings.ToLower(fmt.Sprintf("%v", openAIError.Code))
+	switch lowerCode {
+	case "insufficient_quota", "insufficient_user_quota", "quota_not_enough":
+		return true
+	default:
+	}
+	return isUpstreamInsufficientQuotaMessage(openAIError.Message)
+}
+
 func RelayErrorHandler(ctx context.Context, resp *http.Response, showBodyWhenFail bool) (newApiErr *types.NewAPIError) {
 	newApiErr = types.InitOpenAIError(types.ErrorCodeBadResponseStatusCode, resp.StatusCode)
 
@@ -106,11 +139,18 @@ func RelayErrorHandler(ctx context.Context, resp *http.Response, showBodyWhenFai
 		// General format error (OpenAI, Anthropic, Gemini, etc.)
 		oaiError := errResponse.TryToOpenAIError()
 		if oaiError != nil {
+			if isUpstreamInsufficientQuotaError(*oaiError) {
+				oaiError.Message = upstreamInsufficientQuotaMessage
+			}
 			newApiErr = types.WithOpenAIError(*oaiError, resp.StatusCode)
 			return
 		}
 	}
-	newApiErr = types.NewOpenAIError(errors.New(errResponse.ToMessage()), types.ErrorCodeBadResponseStatusCode, resp.StatusCode)
+	message := errResponse.ToMessage()
+	if isUpstreamInsufficientQuotaMessage(message) {
+		message = upstreamInsufficientQuotaMessage
+	}
+	newApiErr = types.NewOpenAIError(errors.New(message), types.ErrorCodeBadResponseStatusCode, resp.StatusCode)
 	return
 }
 

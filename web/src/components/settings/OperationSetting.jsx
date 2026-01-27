@@ -27,6 +27,7 @@ import SettingsLog from '../../pages/Setting/Operation/SettingsLog';
 import SettingsMonitoring from '../../pages/Setting/Operation/SettingsMonitoring';
 import SettingsCreditLimit from '../../pages/Setting/Operation/SettingsCreditLimit';
 import SettingsSEO from '../../pages/Setting/Operation/SettingsSEO';
+import SettingsTrafficSplitter from '../../pages/Setting/Operation/SettingsTrafficSplitter';
 import { API, showError, toBoolean } from '../../helpers';
 
 const OperationSetting = () => {
@@ -72,6 +73,10 @@ const OperationSetting = () => {
     AutomaticDisableKeywords: '',
     'monitor_setting.auto_test_channel_enabled': false,
     'monitor_setting.auto_test_channel_minutes': 10,
+
+    /* 分流器设置 */
+    'traffic_splitter.enabled': false,
+    'traffic_splitter.rules': '[]',
 
     /* SEO 设置 */
     SEODescription: '',
@@ -144,6 +149,10 @@ const OperationSetting = () => {
         {/* 监控设置 */}
         <Card style={{ marginTop: '10px' }}>
           <SettingsMonitoring options={inputs} refresh={onRefresh} />
+        </Card>
+        {/* 分流器设置 */}
+        <Card style={{ marginTop: '10px' }}>
+          <SettingsTrafficSplitter options={inputs} refresh={onRefresh} />
         </Card>
         {/* 额度设置 */}
         <Card style={{ marginTop: '10px' }}>
