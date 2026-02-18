@@ -47,16 +47,17 @@ func ImageHelper(c *gin.Context, info *relaycommon.RelayInfo) (newAPIError *type
 	var requestBody io.Reader
 
 	if model_setting.GetGlobalSettings().PassThroughRequestEnabled || info.ChannelSetting.PassThroughBodyEnabled {
-		body, err := common.GetRequestBody(c)
+		storage, err := common.GetBodyStorage(c)
 		if err != nil {
 			return types.NewErrorWithStatusCode(err, types.ErrorCodeReadRequestBodyFailed, http.StatusBadRequest, types.ErrOptionWithSkipRetry())
 		}
-		requestBody = bytes.NewBuffer(body)
+		requestBody = common.ReaderOnly(storage)
 	} else {
 		convertedRequest, err := adaptor.ConvertImageRequest(c, info, *request)
 		if err != nil {
 			return types.NewError(err, types.ErrorCodeConvertRequestFailed)
 		}
+		relaycommon.AppendRequestConversionFromRequest(info, convertedRequest)
 
 		switch convertedRequest.(type) {
 		case *bytes.Buffer:
@@ -124,12 +125,18 @@ func ImageHelper(c *gin.Context, info *relaycommon.RelayInfo) (newAPIError *type
 		quality = "hd"
 	}
 
-	var logContent string
+	var logContent []string
 
 	if len(request.Size) > 0 {
-		logContent = fmt.Sprintf("大小 %s, 品质 %s, 张数 %d", request.Size, quality, request.N)
+		logContent = append(logContent, fmt.Sprintf("大小 %s", request.Size))
+	}
+	if len(quality) > 0 {
+		logContent = append(logContent, fmt.Sprintf("品质 %s", quality))
+	}
+	if request.N > 0 {
+		logContent = append(logContent, fmt.Sprintf("生成数量 %d", request.N))
 	}
 
-	postConsumeQuota(c, info, usage.(*dto.Usage), logContent)
+	postConsumeQuota(c, info, usage.(*dto.Usage), logContent...)
 	return nil
 }

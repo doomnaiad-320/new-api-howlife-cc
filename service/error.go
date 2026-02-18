@@ -2,9 +2,11 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"strconv"
 	"strings"
@@ -123,11 +125,17 @@ func RelayErrorHandler(ctx context.Context, resp *http.Response, showBodyWhenFai
 	}
 	CloseResponseBodyGracefully(resp)
 	var errResponse dto.GeneralErrorResponse
+	buildErrWithBody := func(message string) error {
+		if message == "" {
+			return fmt.Errorf("bad response status code %d, body: %s", resp.StatusCode, string(responseBody))
+		}
+		return fmt.Errorf("bad response status code %d, message: %s, body: %s", resp.StatusCode, message, string(responseBody))
+	}
 
 	err = common.Unmarshal(responseBody, &errResponse)
 	if err != nil {
 		if showBodyWhenFail {
-			newApiErr.Err = fmt.Errorf("bad response status code %d, body: %s", resp.StatusCode, string(responseBody))
+			newApiErr.Err = buildErrWithBody("")
 		} else {
 			logger.LogError(ctx, fmt.Sprintf("bad response status code %d, body: %s", resp.StatusCode, string(responseBody)))
 			newApiErr.Err = fmt.Errorf("bad response status code %d", resp.StatusCode)
@@ -143,6 +151,9 @@ func RelayErrorHandler(ctx context.Context, resp *http.Response, showBodyWhenFai
 				oaiError.Message = upstreamInsufficientQuotaMessage
 			}
 			newApiErr = types.WithOpenAIError(*oaiError, resp.StatusCode)
+			if showBodyWhenFail {
+				newApiErr.Err = buildErrWithBody(newApiErr.Error())
+			}
 			return
 		}
 	}
@@ -151,14 +162,20 @@ func RelayErrorHandler(ctx context.Context, resp *http.Response, showBodyWhenFai
 		message = upstreamInsufficientQuotaMessage
 	}
 	newApiErr = types.NewOpenAIError(errors.New(message), types.ErrorCodeBadResponseStatusCode, resp.StatusCode)
+	if showBodyWhenFail {
+		newApiErr.Err = buildErrWithBody(newApiErr.Error())
+	}
 	return
 }
 
 func ResetStatusCode(newApiErr *types.NewAPIError, statusCodeMappingStr string) {
+	if newApiErr == nil {
+		return
+	}
 	if statusCodeMappingStr == "" || statusCodeMappingStr == "{}" {
 		return
 	}
-	statusCodeMapping := make(map[string]string)
+	statusCodeMapping := make(map[string]any)
 	err := common.Unmarshal([]byte(statusCodeMappingStr), &statusCodeMapping)
 	if err != nil {
 		return
@@ -167,9 +184,41 @@ func ResetStatusCode(newApiErr *types.NewAPIError, statusCodeMappingStr string) 
 		return
 	}
 	codeStr := strconv.Itoa(newApiErr.StatusCode)
-	if _, ok := statusCodeMapping[codeStr]; ok {
-		intCode, _ := strconv.Atoi(statusCodeMapping[codeStr])
+	if value, ok := statusCodeMapping[codeStr]; ok {
+		intCode, ok := parseStatusCodeMappingValue(value)
+		if !ok {
+			return
+		}
 		newApiErr.StatusCode = intCode
+	}
+}
+
+func parseStatusCodeMappingValue(value any) (int, bool) {
+	switch v := value.(type) {
+	case string:
+		if v == "" {
+			return 0, false
+		}
+		statusCode, err := strconv.Atoi(v)
+		if err != nil {
+			return 0, false
+		}
+		return statusCode, true
+	case float64:
+		if v != math.Trunc(v) {
+			return 0, false
+		}
+		return int(v), true
+	case int:
+		return v, true
+	case json.Number:
+		statusCode, err := strconv.Atoi(v.String())
+		if err != nil {
+			return 0, false
+		}
+		return statusCode, true
+	default:
+		return 0, false
 	}
 }
 
