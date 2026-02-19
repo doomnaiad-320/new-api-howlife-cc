@@ -44,6 +44,14 @@ export default function SettingsMonitoring(props) {
       '100-199,300-399,401-407,409-499,500-503,505-523,525-599',
     'monitor_setting.auto_test_channel_enabled': false,
     'monitor_setting.auto_test_channel_minutes': 10,
+    'circuit_breaker_setting.enabled': false,
+    'circuit_breaker_setting.consecutive_failures': 3,
+    'circuit_breaker_setting.cooldown_seconds': 30,
+    'circuit_breaker_setting.failure_window_seconds': 120,
+    'circuit_breaker_setting.trigger_status_codes': '429',
+    'circuit_breaker_setting.scope_by_model': false,
+    'circuit_breaker_setting.scope_by_group': false,
+    'circuit_breaker_setting.log_skip_events': false,
   });
   const refForm = useRef();
   const [inputsRow, setInputsRow] = useState(inputs);
@@ -53,6 +61,13 @@ export default function SettingsMonitoring(props) {
   const parsedAutoRetryStatusCodes = parseHttpStatusCodeRules(
     inputs.AutomaticRetryStatusCodes || '',
   );
+  const parsedCircuitBreakerStatusCodes = parseHttpStatusCodeRules(
+    inputs['circuit_breaker_setting.trigger_status_codes'] || '',
+  );
+
+  const hasStatusCode = (parsed, code) =>
+    Array.isArray(parsed?.ranges) &&
+    parsed.ranges.some((range) => code >= range.start && code <= range.end);
 
   function onSubmit() {
     const updateArray = compareObjects(inputs, inputsRow);
@@ -73,6 +88,22 @@ export default function SettingsMonitoring(props) {
           : '';
       return showError(`${t('自动重试状态码格式不正确')}${details}`);
     }
+    if (!parsedCircuitBreakerStatusCodes.ok) {
+      const details =
+        parsedCircuitBreakerStatusCodes.invalidTokens &&
+        parsedCircuitBreakerStatusCodes.invalidTokens.length > 0
+          ? `: ${parsedCircuitBreakerStatusCodes.invalidTokens.join(', ')}`
+          : '';
+      return showError(`${t('熔断触发状态码格式不正确')}${details}`);
+    }
+    if (inputs['circuit_breaker_setting.enabled']) {
+      if (hasStatusCode(parsedAutoDisableStatusCodes, 429)) {
+        return showError(t('启用熔断时，自动禁用状态码中不能包含 429'));
+      }
+      if (!hasStatusCode(parsedCircuitBreakerStatusCodes, 429)) {
+        return showError(t('熔断触发状态码需要包含 429'));
+      }
+    }
     const requestQueue = updateArray.map((item) => {
       let value = '';
       if (typeof inputs[item.key] === 'boolean') {
@@ -81,6 +112,8 @@ export default function SettingsMonitoring(props) {
         const normalizedMap = {
           AutomaticDisableStatusCodes: parsedAutoDisableStatusCodes.normalized,
           AutomaticRetryStatusCodes: parsedAutoRetryStatusCodes.normalized,
+          'circuit_breaker_setting.trigger_status_codes':
+            parsedCircuitBreakerStatusCodes.normalized,
         };
         value = normalizedMap[item.key] ?? inputs[item.key];
       }
@@ -263,6 +296,22 @@ export default function SettingsMonitoring(props) {
                   parsed={parsedAutoRetryStatusCodes}
                   invalidText={t('自动重试状态码格式不正确')}
                 />
+                <HttpStatusCodeRulesInput
+                  label={t('熔断触发状态码')}
+                  placeholder={t('建议至少包含 429')}
+                  extraText={t(
+                    '命中这些状态码会累计失败次数，达到阈值后临时冷却渠道',
+                  )}
+                  field={'circuit_breaker_setting.trigger_status_codes'}
+                  onChange={(value) =>
+                    setInputs({
+                      ...inputs,
+                      'circuit_breaker_setting.trigger_status_codes': value,
+                    })
+                  }
+                  parsed={parsedCircuitBreakerStatusCodes}
+                  invalidText={t('熔断触发状态码格式不正确')}
+                />
                 <Form.TextArea
                   label={t('自动禁用关键词')}
                   placeholder={t('一行一个，不区分大小写')}
@@ -273,6 +322,124 @@ export default function SettingsMonitoring(props) {
                   autosize={{ minRows: 6, maxRows: 12 }}
                   onChange={(value) =>
                     setInputs({ ...inputs, AutomaticDisableKeywords: value })
+                  }
+                />
+              </Col>
+            </Row>
+            <Row gutter={16}>
+              <Col xs={24} sm={12} md={8} lg={8} xl={8}>
+                <Form.Switch
+                  field={'circuit_breaker_setting.enabled'}
+                  label={t('启用429临时熔断')}
+                  size='default'
+                  checkedText='｜'
+                  uncheckedText='〇'
+                  onChange={(value) =>
+                    setInputs({
+                      ...inputs,
+                      'circuit_breaker_setting.enabled': value,
+                    })
+                  }
+                />
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={8} xl={8}>
+                <Form.InputNumber
+                  field={'circuit_breaker_setting.consecutive_failures'}
+                  label={t('熔断连续失败阈值')}
+                  min={1}
+                  step={1}
+                  extraText={t('连续触发后打开冷却')}
+                  onChange={(value) =>
+                    setInputs({
+                      ...inputs,
+                      'circuit_breaker_setting.consecutive_failures': parseInt(
+                        value,
+                      ),
+                    })
+                  }
+                />
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={8} xl={8}>
+                <Form.InputNumber
+                  field={'circuit_breaker_setting.cooldown_seconds'}
+                  label={t('熔断冷却时长')}
+                  min={1}
+                  step={1}
+                  suffix={t('秒')}
+                  extraText={t('冷却期间会自动跳过该渠道')}
+                  onChange={(value) =>
+                    setInputs({
+                      ...inputs,
+                      'circuit_breaker_setting.cooldown_seconds': parseInt(
+                        value,
+                      ),
+                    })
+                  }
+                />
+              </Col>
+            </Row>
+            <Row gutter={16}>
+              <Col xs={24} sm={12} md={8} lg={8} xl={8}>
+                <Form.InputNumber
+                  field={'circuit_breaker_setting.failure_window_seconds'}
+                  label={t('失败统计窗口')}
+                  min={1}
+                  step={1}
+                  suffix={t('秒')}
+                  extraText={t('超出窗口后连续失败次数会重置')}
+                  onChange={(value) =>
+                    setInputs({
+                      ...inputs,
+                      'circuit_breaker_setting.failure_window_seconds':
+                        parseInt(value),
+                    })
+                  }
+                />
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={8} xl={8}>
+                <Form.Switch
+                  field={'circuit_breaker_setting.scope_by_model'}
+                  label={t('按模型维度熔断')}
+                  size='default'
+                  checkedText='｜'
+                  uncheckedText='〇'
+                  onChange={(value) =>
+                    setInputs({
+                      ...inputs,
+                      'circuit_breaker_setting.scope_by_model': value,
+                    })
+                  }
+                />
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={8} xl={8}>
+                <Form.Switch
+                  field={'circuit_breaker_setting.scope_by_group'}
+                  label={t('按分组维度熔断')}
+                  size='default'
+                  checkedText='｜'
+                  uncheckedText='〇'
+                  onChange={(value) =>
+                    setInputs({
+                      ...inputs,
+                      'circuit_breaker_setting.scope_by_group': value,
+                    })
+                  }
+                />
+              </Col>
+            </Row>
+            <Row gutter={16}>
+              <Col xs={24} sm={12} md={8} lg={8} xl={8}>
+                <Form.Switch
+                  field={'circuit_breaker_setting.log_skip_events'}
+                  label={t('记录冷却跳过日志')}
+                  size='default'
+                  checkedText='｜'
+                  uncheckedText='〇'
+                  onChange={(value) =>
+                    setInputs({
+                      ...inputs,
+                      'circuit_breaker_setting.log_skip_events': value,
+                    })
                   }
                 />
               </Col>

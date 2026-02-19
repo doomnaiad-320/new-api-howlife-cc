@@ -116,9 +116,8 @@ const UserArea = ({
             </Dropdown.Menu>
           }
         >
-          <Button
-            theme='borderless'
-            type='tertiary'
+          <button
+            type='button'
             className='flex items-center gap-1.5 !p-1 !rounded-full hover:!bg-semi-color-fill-1 dark:hover:!bg-gray-700 !bg-semi-color-fill-0 dark:!bg-semi-color-fill-1 dark:hover:!bg-semi-color-fill-2'
           >
             <Avatar
@@ -137,7 +136,7 @@ const UserArea = ({
               size={14}
               className='text-xs text-semi-color-text-2 dark:text-gray-400'
             />
-          </Button>
+          </button>
         </Dropdown>
       </div>
     );

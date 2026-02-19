@@ -216,12 +216,22 @@ func Relay(c *gin.Context, relayFormat types.RelayFormat) {
 		}
 
 		if newAPIError == nil {
+			usingGroup := common.GetContextKeyString(c, constant.ContextKeyAutoGroup)
+			if usingGroup == "" {
+				usingGroup = common.GetContextKeyString(c, constant.ContextKeyUsingGroup)
+			}
+			service.ReportCircuitBreakerSuccess(c, channel.Id, relayInfo.OriginModelName, usingGroup)
 			return
 		}
 
 		newAPIError = service.NormalizeViolationFeeError(newAPIError)
 
 		processChannelError(c, *types.NewChannelError(channel.Id, channel.Type, channel.Name, channel.ChannelInfo.IsMultiKey, common.GetContextKeyString(c, constant.ContextKeyChannelKey), channel.GetAutoBan()), newAPIError)
+		usingGroup := common.GetContextKeyString(c, constant.ContextKeyAutoGroup)
+		if usingGroup == "" {
+			usingGroup = common.GetContextKeyString(c, constant.ContextKeyUsingGroup)
+		}
+		service.ReportCircuitBreakerFailure(c, channel.Id, relayInfo.OriginModelName, usingGroup, newAPIError.StatusCode)
 
 		if !shouldRetry(c, newAPIError, common.RetryTimes-retryParam.GetRetry()) {
 			break
@@ -459,8 +469,15 @@ func RelayTask(c *gin.Context) {
 		return
 	}
 	taskErr := taskRelayHandler(c, relayInfo)
+	initialGroup := common.GetContextKeyString(c, constant.ContextKeyAutoGroup)
+	if initialGroup == "" {
+		initialGroup = common.GetContextKeyString(c, constant.ContextKeyUsingGroup)
+	}
 	if taskErr == nil {
+		service.ReportCircuitBreakerSuccess(c, channelId, relayInfo.OriginModelName, initialGroup)
 		retryTimes = 0
+	} else {
+		service.ReportCircuitBreakerFailure(c, channelId, relayInfo.OriginModelName, initialGroup, taskErr.StatusCode)
 	}
 	retryParam := &service.RetryParam{
 		Ctx:        c,
@@ -493,6 +510,15 @@ func RelayTask(c *gin.Context) {
 		}
 		c.Request.Body = io.NopCloser(bodyStorage)
 		taskErr = taskRelayHandler(c, relayInfo)
+		retryGroup := common.GetContextKeyString(c, constant.ContextKeyAutoGroup)
+		if retryGroup == "" {
+			retryGroup = common.GetContextKeyString(c, constant.ContextKeyUsingGroup)
+		}
+		if taskErr == nil {
+			service.ReportCircuitBreakerSuccess(c, channelId, relayInfo.OriginModelName, retryGroup)
+		} else {
+			service.ReportCircuitBreakerFailure(c, channelId, relayInfo.OriginModelName, retryGroup, taskErr.StatusCode)
+		}
 	}
 	useChannel := c.GetStringSlice("use_channel")
 	if len(useChannel) > 1 {

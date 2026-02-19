@@ -1,7 +1,6 @@
 package model
 
 import (
-	"errors"
 	"fmt"
 	"math/rand"
 	"sort"
@@ -17,6 +16,8 @@ import (
 var group2model2channels map[string]map[string][]int // enabled channel
 var channelsIDM map[int]*Channel                     // all channels include disabled
 var channelSyncLock sync.RWMutex
+var channelSelectableChecker func(channel *Channel, group string, model string) bool
+var channelSelectableCheckerLock sync.RWMutex
 
 func InitChannelCache() {
 	if !common.MemoryCacheEnabled {
@@ -93,10 +94,33 @@ func SyncChannelCache(frequency int) {
 	}
 }
 
+func SetChannelSelectableChecker(checker func(channel *Channel, group string, model string) bool) {
+	channelSelectableCheckerLock.Lock()
+	defer channelSelectableCheckerLock.Unlock()
+	channelSelectableChecker = checker
+}
+
+func isChannelSelectable(channel *Channel, group string, model string) bool {
+	channelSelectableCheckerLock.RLock()
+	checker := channelSelectableChecker
+	channelSelectableCheckerLock.RUnlock()
+	if checker == nil {
+		return true
+	}
+	return checker(channel, group, model)
+}
+
 func GetRandomSatisfiedChannel(group string, model string, retry int) (*Channel, error) {
 	// if memory cache is disabled, get channel directly from database
 	if !common.MemoryCacheEnabled {
-		return GetChannel(group, model, retry)
+		channel, err := GetChannel(group, model, retry)
+		if err != nil || channel == nil {
+			return channel, err
+		}
+		if !isChannelSelectable(channel, group, model) {
+			return nil, nil
+		}
+		return channel, nil
 	}
 
 	channelSyncLock.RLock()
@@ -117,6 +141,9 @@ func GetRandomSatisfiedChannel(group string, model string, retry int) (*Channel,
 
 	if len(channels) == 1 {
 		if channel, ok := channelsIDM[channels[0]]; ok {
+			if !isChannelSelectable(channel, group, model) {
+				return nil, nil
+			}
 			return channel, nil
 		}
 		return nil, fmt.Errorf("数据库一致性错误，渠道# %d 不存在，请联系管理员修复", channels[0])
@@ -136,58 +163,68 @@ func GetRandomSatisfiedChannel(group string, model string, retry int) (*Channel,
 	}
 	sort.Sort(sort.Reverse(sort.IntSlice(sortedUniquePriorities)))
 
+	if len(sortedUniquePriorities) == 0 {
+		return nil, nil
+	}
+	if retry < 0 {
+		retry = 0
+	}
 	if retry >= len(uniquePriorities) {
 		retry = len(uniquePriorities) - 1
 	}
-	targetPriority := int64(sortedUniquePriorities[retry])
 
-	// get the priority for the given retry number
-	var sumWeight = 0
-	var targetChannels []*Channel
-	for _, channelId := range channels {
-		if channel, ok := channelsIDM[channelId]; ok {
-			if channel.GetPriority() == targetPriority {
-				sumWeight += channel.GetWeight()
-				targetChannels = append(targetChannels, channel)
+	// If channels at the target priority are all filtered out (e.g. cooldown),
+	// continue to lower priorities within the same selection.
+	for priorityIdx := retry; priorityIdx < len(sortedUniquePriorities); priorityIdx++ {
+		targetPriority := int64(sortedUniquePriorities[priorityIdx])
+
+		// get the priority for the given retry number
+		var sumWeight = 0
+		var targetChannels []*Channel
+		for _, channelId := range channels {
+			if channel, ok := channelsIDM[channelId]; ok {
+				if channel.GetPriority() == targetPriority && isChannelSelectable(channel, group, model) {
+					sumWeight += channel.GetWeight()
+					targetChannels = append(targetChannels, channel)
+				}
+			} else {
+				return nil, fmt.Errorf("数据库一致性错误，渠道# %d 不存在，请联系管理员修复", channelId)
 			}
-		} else {
-			return nil, fmt.Errorf("数据库一致性错误，渠道# %d 不存在，请联系管理员修复", channelId)
+		}
+
+		if len(targetChannels) == 0 {
+			continue
+		}
+
+		// smoothing factor and adjustment
+		smoothingFactor := 1
+		smoothingAdjustment := 0
+
+		if sumWeight == 0 {
+			// when all channels have weight 0, set sumWeight to the number of channels and set smoothing adjustment to 100
+			// each channel's effective weight = 100
+			sumWeight = len(targetChannels) * 100
+			smoothingAdjustment = 100
+		} else if sumWeight/len(targetChannels) < 10 {
+			// when the average weight is less than 10, set smoothing factor to 100
+			smoothingFactor = 100
+		}
+
+		// Calculate the total weight of all channels up to endIdx
+		totalWeight := sumWeight * smoothingFactor
+
+		// Generate a random value in the range [0, totalWeight)
+		randomWeight := rand.Intn(totalWeight)
+
+		// Find a channel based on its weight
+		for _, channel := range targetChannels {
+			randomWeight -= channel.GetWeight()*smoothingFactor + smoothingAdjustment
+			if randomWeight < 0 {
+				return channel, nil
+			}
 		}
 	}
-
-	if len(targetChannels) == 0 {
-		return nil, errors.New(fmt.Sprintf("no channel found, group: %s, model: %s, priority: %d", group, model, targetPriority))
-	}
-
-	// smoothing factor and adjustment
-	smoothingFactor := 1
-	smoothingAdjustment := 0
-
-	if sumWeight == 0 {
-		// when all channels have weight 0, set sumWeight to the number of channels and set smoothing adjustment to 100
-		// each channel's effective weight = 100
-		sumWeight = len(targetChannels) * 100
-		smoothingAdjustment = 100
-	} else if sumWeight/len(targetChannels) < 10 {
-		// when the average weight is less than 10, set smoothing factor to 100
-		smoothingFactor = 100
-	}
-
-	// Calculate the total weight of all channels up to endIdx
-	totalWeight := sumWeight * smoothingFactor
-
-	// Generate a random value in the range [0, totalWeight)
-	randomWeight := rand.Intn(totalWeight)
-
-	// Find a channel based on its weight
-	for _, channel := range targetChannels {
-		randomWeight -= channel.GetWeight()*smoothingFactor + smoothingAdjustment
-		if randomWeight < 0 {
-			return channel, nil
-		}
-	}
-	// return null if no channel is not found
-	return nil, errors.New("channel not found")
+	return nil, nil
 }
 
 func CacheGetChannel(id int) (*Channel, error) {

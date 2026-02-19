@@ -18,7 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 
 import React, { useMemo } from 'react';
-import { Button, Dropdown } from '@douyinfe/semi-ui';
+import { Dropdown } from '@douyinfe/semi-ui';
 import { Sun, Moon, Monitor } from 'lucide-react';
 import { useActualTheme } from '../../../context/Theme';
 
@@ -95,13 +95,13 @@ const ThemeToggle = ({ theme, onThemeToggle, t }) => {
         </Dropdown.Menu>
       }
     >
-      <Button
-        icon={currentButtonIcon}
+      <button
+        type='button'
         aria-label={t('切换主题')}
-        theme='borderless'
-        type='tertiary'
         className='!p-1.5 !text-current focus:!bg-semi-color-fill-1 !rounded-full !bg-semi-color-fill-0 hover:!bg-semi-color-fill-1'
-      />
+      >
+        {currentButtonIcon}
+      </button>
     </Dropdown>
   );
 };

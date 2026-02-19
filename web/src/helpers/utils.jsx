@@ -313,17 +313,21 @@ export function setPromptShown(id) {
  */
 export function compareObjects(oldObject, newObject) {
   const changedProperties = [];
+  const oldValueMap = oldObject || {};
+  const newValueMap = newObject || {};
+  const allKeys = new Set([
+    ...Object.keys(oldValueMap),
+    ...Object.keys(newValueMap),
+  ]);
 
-  // 比较两个对象的属性
-  for (const key in oldObject) {
-    if (oldObject.hasOwnProperty(key) && newObject.hasOwnProperty(key)) {
-      if (oldObject[key] !== newObject[key]) {
-        changedProperties.push({
-          key: key,
-          oldValue: oldObject[key],
-          newValue: newObject[key],
-        });
-      }
+  // 比较两个对象所有键的属性（包含只出现在某一侧的新键）
+  for (const key of allKeys) {
+    if (oldValueMap[key] !== newValueMap[key]) {
+      changedProperties.push({
+        key: key,
+        oldValue: oldValueMap[key],
+        newValue: newValueMap[key],
+      });
     }
   }
 

@@ -441,14 +441,21 @@ export const useLogsData = () => {
           other?.upstream_model_name &&
           other?.upstream_model_name !== '';
         if (modelMapped) {
-          expandDataLocal.push({
-            key: t('请求并计费模型'),
-            value: logs[i].model_name,
-          });
-          expandDataLocal.push({
-            key: t('实际模型'),
-            value: other.upstream_model_name,
-          });
+          if (isAdminUser) {
+            expandDataLocal.push({
+              key: t('请求并计费模型'),
+              value: logs[i].model_name,
+            });
+            expandDataLocal.push({
+              key: t('实际模型'),
+              value: other.upstream_model_name,
+            });
+          } else {
+            expandDataLocal.push({
+              key: t('模型'),
+              value: other.upstream_model_name,
+            });
+          }
         }
 
         const isViolationFeeLog =

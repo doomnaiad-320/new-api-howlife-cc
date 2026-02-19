@@ -77,6 +77,14 @@ const OperationSetting = () => {
       '100-199,300-399,401-407,409-499,500-503,505-523,525-599',
     'monitor_setting.auto_test_channel_enabled': false,
     'monitor_setting.auto_test_channel_minutes': 10,
+    'circuit_breaker_setting.enabled': false,
+    'circuit_breaker_setting.consecutive_failures': 3,
+    'circuit_breaker_setting.cooldown_seconds': 30,
+    'circuit_breaker_setting.failure_window_seconds': 120,
+    'circuit_breaker_setting.trigger_status_codes': '429',
+    'circuit_breaker_setting.scope_by_model': false,
+    'circuit_breaker_setting.scope_by_group': false,
+    'circuit_breaker_setting.log_skip_events': false,
 
     /* 分流器设置 */
     'traffic_splitter.enabled': false,
@@ -85,7 +93,6 @@ const OperationSetting = () => {
     /* SEO 设置 */
     SEODescription: '',
     SEOKeywords: '',
-    'monitor_setting.auto_test_channel_minutes': 10,
 
     /* 签到设置 */
     'checkin_setting.enabled': false,

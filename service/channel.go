@@ -57,6 +57,10 @@ func ShouldDisableChannel(channelType int, err *types.NewAPIError) bool {
 	if types.IsSkipRetryError(err) {
 		return false
 	}
+	if ShouldTriggerCircuitBreakerStatus(err.StatusCode) {
+		// 429-style throttling should enter temporary cooldown instead of permanent auto-disable.
+		return false
+	}
 	if operation_setting.ShouldDisableByStatusCode(err.StatusCode) {
 		return true
 	}

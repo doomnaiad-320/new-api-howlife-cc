@@ -223,16 +223,25 @@ function renderBillingTag(record, t) {
   return null;
 }
 
-function renderModelName(record, copyText, t) {
+function renderModelName(record, copyText, t, isAdminUser) {
   let other = getLogOther(record.other);
   let modelMapped =
     other?.is_model_mapped &&
     other?.upstream_model_name &&
     other?.upstream_model_name !== '';
+  const displayModelName = modelMapped
+    ? other.upstream_model_name
+    : record.model_name;
   if (!modelMapped) {
-    return renderModelTag(record.model_name, {
+    return renderModelTag(displayModelName, {
       onClick: (event) => {
-        copyText(event, record.model_name).then((r) => {});
+        copyText(event, displayModelName).then((r) => {});
+      },
+    });
+  } else if (!isAdminUser) {
+    return renderModelTag(displayModelName, {
+      onClick: (event) => {
+        copyText(event, displayModelName).then((r) => {});
       },
     });
   } else {
@@ -523,7 +532,7 @@ export const getLogsColumns = ({
       dataIndex: 'model_name',
       render: (text, record, index) => {
         return record.type === 0 || record.type === 2 || record.type === 5 ? (
-          <>{renderModelName(record, copyText, t)}</>
+          <>{renderModelName(record, copyText, t, isAdminUser)}</>
         ) : (
           <></>
         );
