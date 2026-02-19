@@ -35,6 +35,7 @@ const ChannelsTable = (channelsData) => {
     pageSize,
     channelCount,
     enableBatchDelete,
+    circuitBreakerStateByChannel,
     compactMode,
     visibleColumns,
     setSelectedChannels,
@@ -86,6 +87,7 @@ const ChannelsTable = (channelsData) => {
       checkOllamaVersion,
       setShowMultiKeyManageModal,
       setCurrentMultiKeyChannel,
+      circuitBreakerStateByChannel,
     });
   }, [
     t,
@@ -108,6 +110,7 @@ const ChannelsTable = (channelsData) => {
     checkOllamaVersion,
     setShowMultiKeyManageModal,
     setCurrentMultiKeyChannel,
+    circuitBreakerStateByChannel,
   ]);
 
   // Filter columns based on visibility settings

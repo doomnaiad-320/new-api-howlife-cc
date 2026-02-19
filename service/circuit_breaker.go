@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 	"fmt"
+	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -41,6 +43,21 @@ type CircuitBreakerOpenState struct {
 	ConsecutiveFailures  int   `json:"consecutive_failures"`
 	CooldownSeconds      int   `json:"cooldown_seconds"`
 	FailureWindowSeconds int   `json:"failure_window_seconds"`
+}
+
+type CircuitBreakerStateView struct {
+	Key                  string `json:"key"`
+	ChannelID            int    `json:"channel_id"`
+	ChannelName          string `json:"channel_name"`
+	ModelName            string `json:"model_name"`
+	GroupName            string `json:"group_name"`
+	LastStatusCode       int    `json:"last_status_code"`
+	ConsecutiveFailures  int    `json:"consecutive_failures"`
+	CooldownSeconds      int    `json:"cooldown_seconds"`
+	FailureWindowSeconds int    `json:"failure_window_seconds"`
+	OpenedAtUnix         int64  `json:"opened_at_unix"`
+	OpenUntilUnix        int64  `json:"open_until_unix"`
+	RemainingSeconds     int64  `json:"remaining_seconds"`
 }
 
 func init() {
@@ -315,4 +332,90 @@ func maxInt(values ...int) int {
 		}
 	}
 	return maxV
+}
+
+func ListCircuitBreakerOpenStates() ([]CircuitBreakerStateView, error) {
+	keys, err := getCircuitBreakerOpenCache().Keys()
+	if err != nil {
+		return nil, err
+	}
+	nowUnix := time.Now().Unix()
+	states := make([]CircuitBreakerStateView, 0, len(keys))
+
+	for _, key := range keys {
+		openState, found, getErr := getCircuitBreakerOpenCache().Get(key)
+		if getErr != nil || !found {
+			continue
+		}
+		remaining := openState.OpenUntilUnix - nowUnix
+		if remaining <= 0 {
+			continue
+		}
+
+		normalizedKey := normalizeCircuitBreakerCacheKey(key)
+		channelID, modelName, groupName := parseCircuitBreakerScopeKey(normalizedKey)
+		channelName := ""
+		if channelID > 0 {
+			channel, channelErr := model.CacheGetChannel(channelID)
+			if channelErr == nil && channel != nil {
+				channelName = channel.Name
+			}
+		}
+
+		states = append(states, CircuitBreakerStateView{
+			Key:                  normalizedKey,
+			ChannelID:            channelID,
+			ChannelName:          channelName,
+			ModelName:            modelName,
+			GroupName:            groupName,
+			LastStatusCode:       openState.LastStatusCode,
+			ConsecutiveFailures:  openState.ConsecutiveFailures,
+			CooldownSeconds:      openState.CooldownSeconds,
+			FailureWindowSeconds: openState.FailureWindowSeconds,
+			OpenedAtUnix:         openState.OpenedAtUnix,
+			OpenUntilUnix:        openState.OpenUntilUnix,
+			RemainingSeconds:     remaining,
+		})
+	}
+
+	sort.Slice(states, func(i, j int) bool {
+		if states[i].RemainingSeconds == states[j].RemainingSeconds {
+			return states[i].ChannelID < states[j].ChannelID
+		}
+		return states[i].RemainingSeconds > states[j].RemainingSeconds
+	})
+
+	return states, nil
+}
+
+func normalizeCircuitBreakerCacheKey(key string) string {
+	key = strings.TrimSpace(key)
+	if key == "" {
+		return ""
+	}
+	return strings.TrimPrefix(key, circuitBreakerOpenNamespace+":")
+}
+
+func parseCircuitBreakerScopeKey(key string) (int, string, string) {
+	channelID := 0
+	modelName := ""
+	groupName := ""
+	for _, part := range strings.Split(strings.TrimSpace(key), "|") {
+		part = strings.TrimSpace(part)
+		if part == "" {
+			continue
+		}
+		switch {
+		case strings.HasPrefix(part, "channel:"):
+			id, err := strconv.Atoi(strings.TrimPrefix(part, "channel:"))
+			if err == nil && id > 0 {
+				channelID = id
+			}
+		case strings.HasPrefix(part, "model:"):
+			modelName = strings.TrimPrefix(part, "model:")
+		case strings.HasPrefix(part, "group:"):
+			groupName = strings.TrimPrefix(part, "group:")
+		}
+	}
+	return channelID, modelName, groupName
 }

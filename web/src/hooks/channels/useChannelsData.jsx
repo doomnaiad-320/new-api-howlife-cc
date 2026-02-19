@@ -51,6 +51,8 @@ export const useChannelsData = () => {
   const [pageSize, setPageSize] = useState(ITEMS_PER_PAGE);
   const [channelCount, setChannelCount] = useState(0);
   const [groupOptions, setGroupOptions] = useState([]);
+  const [circuitBreakerStateByChannel, setCircuitBreakerStateByChannel] =
+    useState({});
 
   // UI states
   const [showEdit, setShowEdit] = useState(false);
@@ -311,6 +313,68 @@ export const useChannelsData = () => {
     };
   };
 
+  const buildCircuitBreakerStateMap = (items = []) => {
+    const stateMap = {};
+    if (!Array.isArray(items)) {
+      return stateMap;
+    }
+
+    items.forEach((item) => {
+      const channelId = Number(item?.channel_id);
+      if (!Number.isInteger(channelId) || channelId <= 0) {
+        return;
+      }
+
+      const remainingSeconds = Math.max(
+        0,
+        Math.floor(Number(item?.remaining_seconds) || 0),
+      );
+      if (remainingSeconds <= 0) {
+        return;
+      }
+
+      if (!stateMap[channelId]) {
+        stateMap[channelId] = {
+          remainingSecondsMax: 0,
+          itemsCount: 0,
+          scopes: [],
+        };
+      }
+
+      const row = stateMap[channelId];
+      row.itemsCount += 1;
+      row.remainingSecondsMax = Math.max(
+        row.remainingSecondsMax,
+        remainingSeconds,
+      );
+
+      if (row.scopes.length < 5) {
+        row.scopes.push({
+          modelName: String(item?.model_name || ''),
+          groupName: String(item?.group_name || ''),
+          remainingSeconds,
+        });
+      }
+    });
+
+    return stateMap;
+  };
+
+  const fetchCircuitBreakerStateMap = async () => {
+    try {
+      const res = await API.get('/api/channel/circuit_breaker/states', {
+        skipErrorHandler: true,
+      });
+      const { success, data } = res?.data || {};
+      if (!success) {
+        return {};
+      }
+      return buildCircuitBreakerStateMap(data?.items || []);
+    } catch (error) {
+      return {};
+    }
+  };
+
   // Load channels
   const loadChannels = async (
     page,
@@ -341,9 +405,12 @@ export const useChannelsData = () => {
     setLoading(true);
     const typeParam = typeKey !== 'all' ? `&type=${typeKey}` : '';
     const statusParam = statusF !== 'all' ? `&status=${statusF}` : '';
-    const res = await API.get(
-      `/api/channel/?p=${page}&page_size=${pageSize}&id_sort=${idSort}&tag_mode=${enableTagMode}${typeParam}${statusParam}`,
-    );
+    const [res, circuitBreakerStateMap] = await Promise.all([
+      API.get(
+        `/api/channel/?p=${page}&page_size=${pageSize}&id_sort=${idSort}&tag_mode=${enableTagMode}${typeParam}${statusParam}`,
+      ),
+      fetchCircuitBreakerStateMap(),
+    ]);
 
     if (res === undefined || reqId !== requestCounter.current) {
       return;
@@ -361,8 +428,10 @@ export const useChannelsData = () => {
       }
       setChannelFormat(items, enableTagMode);
       setChannelCount(total);
+      setCircuitBreakerStateByChannel(circuitBreakerStateMap);
     } else {
       showError(message);
+      setCircuitBreakerStateByChannel(circuitBreakerStateMap);
     }
     setLoading(false);
   };
@@ -393,9 +462,12 @@ export const useChannelsData = () => {
 
       const typeParam = typeKey !== 'all' ? `&type=${typeKey}` : '';
       const statusParam = statusF !== 'all' ? `&status=${statusF}` : '';
-      const res = await API.get(
-        `/api/channel/search?keyword=${searchKeyword}&group=${searchGroup}&model=${searchModel}&id_sort=${sortFlag}&tag_mode=${enableTagMode}&p=${page}&page_size=${pageSz}${typeParam}${statusParam}`,
-      );
+      const [res, circuitBreakerStateMap] = await Promise.all([
+        API.get(
+          `/api/channel/search?keyword=${searchKeyword}&group=${searchGroup}&model=${searchModel}&id_sort=${sortFlag}&tag_mode=${enableTagMode}&p=${page}&page_size=${pageSz}${typeParam}${statusParam}`,
+        ),
+        fetchCircuitBreakerStateMap(),
+      ]);
       const { success, message, data } = res.data;
       if (success) {
         const { items = [], total = 0, type_counts = {} } = data;
@@ -407,8 +479,10 @@ export const useChannelsData = () => {
         setChannelFormat(items, enableTagMode);
         setChannelCount(total);
         setActivePage(page);
+        setCircuitBreakerStateByChannel(circuitBreakerStateMap);
       } else {
         showError(message);
+        setCircuitBreakerStateByChannel(circuitBreakerStateMap);
       }
     } finally {
       setSearching(false);
@@ -1133,6 +1207,7 @@ export const useChannelsData = () => {
     pageSize,
     channelCount,
     groupOptions,
+    circuitBreakerStateByChannel,
     idSort,
     enableTagMode,
     enableBatchDelete,

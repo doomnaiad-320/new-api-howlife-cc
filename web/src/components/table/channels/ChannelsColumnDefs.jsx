@@ -248,6 +248,61 @@ const renderResponseTime = (responseTime, t) => {
   }
 };
 
+const renderCircuitBreakerTag = (state, t) => {
+  if (!state || state.itemsCount <= 0) {
+    return null;
+  }
+
+  const remainingSeconds = Math.max(
+    0,
+    Math.floor(Number(state.remainingSecondsMax) || 0),
+  );
+  if (remainingSeconds <= 0) {
+    return null;
+  }
+
+  const tagNode = (
+    <Tag color='orange' shape='circle' type='light'>
+      {t('冷却中')} {remainingSeconds}s
+    </Tag>
+  );
+
+  const scopes = Array.isArray(state.scopes) ? state.scopes : [];
+  if (scopes.length === 0) {
+    return tagNode;
+  }
+
+  const more = Math.max(0, (state.itemsCount || 0) - scopes.length);
+  return (
+    <Tooltip
+      content={
+        <div className='max-w-xs'>
+          {scopes.map((scope, idx) => {
+            const modelName = String(scope?.modelName || '').trim();
+            const groupName = String(scope?.groupName || '').trim();
+            const scopeName =
+              modelName || groupName
+                ? `${modelName || '-'} / ${groupName || '-'}`
+                : t('全局');
+            const scopeRemaining = Math.max(
+              0,
+              Math.floor(Number(scope?.remainingSeconds) || 0),
+            );
+            return (
+              <div key={`scope-${idx}`}>
+                {scopeName} · {scopeRemaining}s
+              </div>
+            );
+          })}
+          {more > 0 ? <div>+{more}</div> : null}
+        </div>
+      }
+    >
+      <span>{tagNode}</span>
+    </Tooltip>
+  );
+};
+
 const isRequestPassThroughEnabled = (record) => {
   if (!record || record.children !== undefined) {
     return false;
@@ -291,6 +346,7 @@ export const getChannelsColumns = ({
   checkOllamaVersion,
   setShowMultiKeyManageModal,
   setCurrentMultiKeyChannel,
+  circuitBreakerStateByChannel = {},
 }) => {
   return [
     {
@@ -399,27 +455,41 @@ export const getChannelsColumns = ({
       title: t('状态'),
       dataIndex: 'status',
       render: (text, record, index) => {
+        const cooldownState =
+          record.children === undefined
+            ? circuitBreakerStateByChannel?.[record.id]
+            : undefined;
+        const cooldownTag = renderCircuitBreakerTag(cooldownState, t);
+
+        let statusNode;
         if (text === 3) {
           if (record.other_info === '') {
             record.other_info = '{}';
           }
-          let otherInfo = JSON.parse(record.other_info);
+          let otherInfo = {};
+          try {
+            otherInfo = JSON.parse(record.other_info);
+          } catch (error) {
+            otherInfo = {};
+          }
           let reason = otherInfo['status_reason'];
           let time = otherInfo['status_time'];
-          return (
-            <div>
-              <Tooltip
-                content={
-                  t('原因：') + reason + t('，时间：') + timestamp2string(time)
-                }
-              >
-                {renderStatus(text, record.channel_info, t)}
-              </Tooltip>
-            </div>
+          statusNode = (
+            <Tooltip
+              content={t('原因：') + reason + t('，时间：') + timestamp2string(time)}
+            >
+              <span>{renderStatus(text, record.channel_info, t)}</span>
+            </Tooltip>
           );
         } else {
-          return renderStatus(text, record.channel_info, t);
+          statusNode = renderStatus(text, record.channel_info, t);
         }
+
+        if (cooldownTag) {
+          return <Space spacing={6}>{statusNode}{cooldownTag}</Space>;
+        }
+
+        return statusNode;
       },
     },
     {

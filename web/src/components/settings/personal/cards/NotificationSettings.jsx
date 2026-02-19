@@ -73,6 +73,7 @@ const NotificationSettings = ({
       detail: true,
       token: true,
       log: true,
+      circuit_breaker: true,
       midjourney: true,
       task: true,
     },
@@ -160,6 +161,7 @@ const NotificationSettings = ({
         detail: true,
         token: true,
         log: true,
+        circuit_breaker: true,
         midjourney: true,
         task: true,
       },
@@ -204,7 +206,14 @@ const NotificationSettings = ({
           } else {
             userConf = userRes.data.data.sidebar_modules;
           }
-          setSidebarModulesUser(userConf);
+          setSidebarModulesUser((prev) => ({
+            ...prev,
+            ...userConf,
+            chat: { ...prev.chat, ...(userConf.chat || {}) },
+            console: { ...prev.console, ...(userConf.console || {}) },
+            personal: { ...prev.personal, ...(userConf.personal || {}) },
+            admin: { ...prev.admin, ...(userConf.admin || {}) },
+          }));
         }
       } catch (error) {
         console.error('加载边栏配置失败:', error);
@@ -262,6 +271,11 @@ const NotificationSettings = ({
         { key: 'detail', title: t('数据看板'), description: t('系统数据统计') },
         { key: 'token', title: t('令牌管理'), description: t('API令牌管理') },
         { key: 'log', title: t('使用日志'), description: t('API使用记录') },
+        {
+          key: 'circuit_breaker',
+          title: t('熔断监控'),
+          description: t('熔断状态与设置'),
+        },
         {
           key: 'midjourney',
           title: t('绘图日志'),

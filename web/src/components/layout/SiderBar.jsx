@@ -39,6 +39,7 @@ const routerMap = {
   user: '/console/user',
   subscription: '/console/subscription',
   log: '/console/log',
+  circuit_breaker: '/console/circuit-breaker',
   midjourney: '/console/midjourney',
   setting: '/console/setting',
   about: '/about',
@@ -88,6 +89,12 @@ const SiderBar = ({ onNavigate = () => {} }) => {
         text: t('使用日志'),
         itemKey: 'log',
         to: '/log',
+      },
+      {
+        text: t('熔断监控'),
+        itemKey: 'circuit_breaker',
+        to: '/circuit-breaker',
+        className: isAdmin() ? '' : 'tableHiddle',
       },
       {
         text: t('绘图日志'),

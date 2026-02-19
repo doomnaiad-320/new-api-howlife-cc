@@ -50,6 +50,7 @@ export default function SettingsSidebarModulesAdmin(props) {
       detail: true,
       token: true,
       log: true,
+      circuit_breaker: true,
       midjourney: true,
       task: true,
     },
@@ -111,6 +112,7 @@ export default function SettingsSidebarModulesAdmin(props) {
         detail: true,
         token: true,
         log: true,
+        circuit_breaker: true,
         midjourney: true,
         task: true,
       },
@@ -174,7 +176,14 @@ export default function SettingsSidebarModulesAdmin(props) {
     if (props.options && props.options.SidebarModulesAdmin) {
       try {
         const modules = JSON.parse(props.options.SidebarModulesAdmin);
-        setSidebarModulesAdmin(modules);
+        setSidebarModulesAdmin((prev) => ({
+          ...prev,
+          ...modules,
+          chat: { ...prev.chat, ...(modules.chat || {}) },
+          console: { ...prev.console, ...(modules.console || {}) },
+          personal: { ...prev.personal, ...(modules.personal || {}) },
+          admin: { ...prev.admin, ...(modules.admin || {}) },
+        }));
       } catch (error) {
         // 使用默认配置
         const defaultModules = {
@@ -184,6 +193,7 @@ export default function SettingsSidebarModulesAdmin(props) {
             detail: true,
             token: true,
             log: true,
+            circuit_breaker: true,
             midjourney: true,
             task: true,
           },
@@ -227,6 +237,11 @@ export default function SettingsSidebarModulesAdmin(props) {
         { key: 'detail', title: t('数据看板'), description: t('系统数据统计') },
         { key: 'token', title: t('令牌管理'), description: t('API令牌管理') },
         { key: 'log', title: t('使用日志'), description: t('API使用记录') },
+        {
+          key: 'circuit_breaker',
+          title: t('熔断监控'),
+          description: t('熔断状态与设置'),
+        },
         {
           key: 'midjourney',
           title: t('绘图日志'),
