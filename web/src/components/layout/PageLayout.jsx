@@ -22,6 +22,7 @@ import { Layout } from '@douyinfe/semi-ui';
 import SiderBar from './SiderBar';
 import App from '../../App';
 import FooterBar from './Footer';
+import MobileTabBar from './mobile/MobileTabBar';
 import { ToastContainer } from 'react-toastify';
 import React, { useContext, useEffect, useState } from 'react';
 import { useIsMobile } from '../../hooks/common/useIsMobile';
@@ -33,6 +34,7 @@ import {
   getSystemName,
   showError,
   setStatusData,
+  isAdmin,
 } from '../../helpers';
 import { UserContext } from '../../context/User';
 import { StatusContext } from '../../context/Status';
@@ -47,6 +49,14 @@ const PageLayout = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { i18n } = useTranslation();
   const location = useLocation();
+  const isAdminUser = isAdmin();
+  const mobileTabRoutes = [
+    '/console/home',
+    '/console/log',
+    '/console/models-mobile',
+    '/console/messages',
+    '/console/personal',
+  ];
 
   const cardProPages = [
     '/console/channel',
@@ -57,10 +67,16 @@ const PageLayout = () => {
     '/console/midjourney',
     '/console/task',
     '/console/models',
+    '/console/home',
+    '/console/messages',
+    '/console/models-mobile',
     '/pricing',
   ];
 
-  const shouldHideFooter = cardProPages.includes(location.pathname);
+  const showMobileUserTabbar =
+    isMobile && !isAdminUser && mobileTabRoutes.includes(location.pathname);
+  const shouldHideFooter =
+    cardProPages.includes(location.pathname) || showMobileUserTabbar;
 
   const shouldInnerPadding =
     location.pathname.includes('/console') &&
@@ -189,6 +205,7 @@ const PageLayout = () => {
               overflowY: isMobile ? 'visible' : 'hidden',
               WebkitOverflowScrolling: 'touch',
               padding: shouldInnerPadding ? (isMobile ? '5px' : '24px') : '0',
+              paddingBottom: showMobileUserTabbar ? '84px' : undefined,
               position: 'relative',
             }}
           >
@@ -206,6 +223,7 @@ const PageLayout = () => {
           )}
         </Layout>
       </Layout>
+      {showMobileUserTabbar && <MobileTabBar />}
       <ToastContainer />
     </Layout>
   );

@@ -875,3 +875,234 @@ html.dark .with-pastel-balls::before {
 .semi-datepicker-range-input {
   border-radius: 10px !important;
 }
+
+/* ==================== 用户端 H5 布局 ==================== */
+.mobile-console-tabbar {
+  position: fixed;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  z-index: 120;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 4px;
+  padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+  border: 1px solid var(--semi-color-border);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+}
+
+.mobile-console-tabbar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 48px;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--semi-color-text-2);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.mobile-console-tabbar-item.is-active {
+  background: rgba(var(--semi-blue-0), 0.14);
+  color: var(--semi-color-primary);
+  font-weight: 600;
+}
+
+.h5-home-card-header,
+.h5-model-card-top,
+.h5-log-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.h5-home-card-title,
+.h5-messages-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.h5-home-list-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 12px;
+  background: var(--semi-color-fill-0);
+}
+
+.h5-home-list-main {
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.h5-home-summary {
+  display: block;
+  line-height: 1.45;
+}
+
+.h5-home-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.h5-home-stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px;
+  border-radius: 12px;
+  background: var(--semi-color-fill-0);
+}
+
+.h5-home-rebate {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.h5-home-rebate-main {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.h5-home-rebate-percent {
+  font-size: 28px;
+  font-weight: 700;
+  color: rgba(var(--semi-orange-5), 1);
+}
+
+.h5-messages-content {
+  font-size: 13px;
+  line-height: 1.6;
+  word-break: break-word;
+}
+
+.h5-messages-timeline {
+  max-height: 62vh;
+  overflow-y: auto;
+}
+
+.h5-messages-extra {
+  font-size: 12px;
+  color: var(--semi-color-text-2);
+}
+
+.h5-model-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--semi-color-border);
+  border-radius: 12px;
+  padding: 8px 10px;
+}
+
+.h5-model-search-icon {
+  color: var(--semi-color-text-2);
+  flex-shrink: 0;
+}
+
+.h5-model-search-input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--semi-color-text-0);
+  font-size: 13px;
+}
+
+.h5-model-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.h5-model-list,
+.h5-log-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.h5-model-sub {
+  font-size: 12px;
+  color: var(--semi-color-text-2);
+  margin-top: 2px;
+}
+
+.h5-model-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.h5-model-price {
+  margin-top: 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--semi-color-text-1);
+}
+
+.h5-log-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.h5-log-grid {
+  margin-top: 6px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  font-size: 12px;
+}
+
+.h5-log-error {
+  margin-top: 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(var(--semi-red-5), 0.24);
+  background: rgba(var(--semi-red-0), 0.18);
+  padding: 8px;
+}
+
+.h5-log-error-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(var(--semi-red-7), 1);
+}
+
+.h5-log-error-content {
+  margin-top: 4px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 12px;
+}
+
+.h5-log-details {
+  margin-top: 8px;
+}
+
+.h5-log-details > summary {
+  cursor: pointer;
+  color: var(--semi-color-primary);
+  font-size: 12px;
+}
+
+html.dark .mobile-console-tabbar {
+  background: rgba(24, 24, 27, 0.92);
+}

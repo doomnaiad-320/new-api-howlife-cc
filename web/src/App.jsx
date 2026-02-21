@@ -18,16 +18,17 @@ For commercial licensing, please contact support@quantumnous.com
 */
 
 import React, { lazy, Suspense, useContext, useMemo } from 'react';
-import { Route, Routes, useLocation } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import Loading from './components/common/ui/Loading';
 import User from './pages/User';
-import { AuthRedirect, PrivateRoute, AdminRoute } from './helpers';
+import { AuthRedirect, PrivateRoute, AdminRoute, isAdmin } from './helpers';
 import RegisterForm from './components/auth/RegisterForm';
 import LoginForm from './components/auth/LoginForm';
 import NotFound from './pages/NotFound';
 import Forbidden from './pages/Forbidden';
 import Setting from './pages/Setting';
 import { StatusContext } from './context/Status';
+import { useIsMobile } from './hooks/common/useIsMobile';
 
 import PasswordResetForm from './components/auth/PasswordResetForm';
 import PasswordResetConfirm from './components/auth/PasswordResetConfirm';
@@ -56,10 +57,15 @@ const Dashboard = lazy(() => import('./pages/Dashboard'));
 const About = lazy(() => import('./pages/About'));
 const UserAgreement = lazy(() => import('./pages/UserAgreement'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
+const MobileConsoleHome = lazy(() => import('./pages/MobileConsoleHome'));
+const MobileConsoleMessages = lazy(() => import('./pages/MobileConsoleMessages'));
+const MobileConsoleModels = lazy(() => import('./pages/MobileConsoleModels'));
 
 function App() {
   const location = useLocation();
   const [statusState] = useContext(StatusContext);
+  const isMobile = useIsMobile();
+  const isAdminUser = isAdmin();
 
   // 获取模型广场权限配置
   const pricingRequireAuth = useMemo(() => {
@@ -274,6 +280,36 @@ function App() {
           }
         />
         <Route
+          path='/console/home'
+          element={
+            <PrivateRoute>
+              <Suspense fallback={<Loading></Loading>} key={location.pathname}>
+                <MobileConsoleHome />
+              </Suspense>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path='/console/messages'
+          element={
+            <PrivateRoute>
+              <Suspense fallback={<Loading></Loading>} key={location.pathname}>
+                <MobileConsoleMessages />
+              </Suspense>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path='/console/models-mobile'
+          element={
+            <PrivateRoute>
+              <Suspense fallback={<Loading></Loading>} key={location.pathname}>
+                <MobileConsoleModels />
+              </Suspense>
+            </PrivateRoute>
+          }
+        />
+        <Route
           path='/console/circuit-breaker'
           element={
             <AdminRoute>
@@ -286,7 +322,11 @@ function App() {
           element={
             <PrivateRoute>
               <Suspense fallback={<Loading></Loading>} key={location.pathname}>
-                <Dashboard />
+                {isMobile && !isAdminUser ? (
+                  <Navigate to='/console/home' replace />
+                ) : (
+                  <Dashboard />
+                )}
               </Suspense>
             </PrivateRoute>
           }
