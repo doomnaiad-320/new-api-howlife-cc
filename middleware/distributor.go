@@ -101,36 +101,38 @@ func Distribute() func(c *gin.Context) {
 						common.SetContextKey(c, constant.ContextKeyUsingGroup, usingGroup)
 					}
 				}
-				channel = pickTrafficSplitChannel(c, modelRequest.Model)
-				if channel != nil && service.ShouldSkipChannelByCircuitBreaker(c, channel.Id, modelRequest.Model, usingGroup) {
-					channel = nil
-				}
-				if channel == nil {
-					if preferredChannelID, found := service.GetPreferredChannelByAffinity(c, modelRequest.Model, usingGroup); found {
-						preferred, err := model.CacheGetChannel(preferredChannelID)
-						if err == nil && preferred != nil && preferred.Status == common.ChannelStatusEnabled {
-							if usingGroup == "auto" {
-								userGroup := common.GetContextKeyString(c, constant.ContextKeyUserGroup)
-								autoGroups := service.GetUserAutoGroup(userGroup)
-								for _, g := range autoGroups {
-									if model.IsChannelEnabledForGroupModel(g, modelRequest.Model, preferred.Id) {
-										if service.ShouldSkipChannelByCircuitBreaker(c, preferred.Id, modelRequest.Model, g) {
-											continue
+				if !operation_setting.IsRouterModeV2() {
+					channel = pickTrafficSplitChannel(c, modelRequest.Model)
+					if channel != nil && service.ShouldSkipChannelByCircuitBreaker(c, channel.Id, modelRequest.Model, usingGroup) {
+						channel = nil
+					}
+					if channel == nil {
+						if preferredChannelID, found := service.GetPreferredChannelByAffinity(c, modelRequest.Model, usingGroup); found {
+							preferred, err := model.CacheGetChannel(preferredChannelID)
+							if err == nil && preferred != nil && preferred.Status == common.ChannelStatusEnabled {
+								if usingGroup == "auto" {
+									userGroup := common.GetContextKeyString(c, constant.ContextKeyUserGroup)
+									autoGroups := service.GetUserAutoGroup(userGroup)
+									for _, g := range autoGroups {
+										if model.IsChannelEnabledForGroupModel(g, modelRequest.Model, preferred.Id) {
+											if service.ShouldSkipChannelByCircuitBreaker(c, preferred.Id, modelRequest.Model, g) {
+												continue
+											}
+											selectGroup = g
+											common.SetContextKey(c, constant.ContextKeyAutoGroup, g)
+											channel = preferred
+											service.MarkChannelAffinityUsed(c, g, preferred.Id)
+											break
 										}
-										selectGroup = g
-										common.SetContextKey(c, constant.ContextKeyAutoGroup, g)
-										channel = preferred
-										service.MarkChannelAffinityUsed(c, g, preferred.Id)
-										break
 									}
-								}
-							} else if model.IsChannelEnabledForGroupModel(usingGroup, modelRequest.Model, preferred.Id) {
-								if service.ShouldSkipChannelByCircuitBreaker(c, preferred.Id, modelRequest.Model, usingGroup) {
-									// fallthrough to regular random channel selection
-								} else {
-									channel = preferred
-									selectGroup = usingGroup
-									service.MarkChannelAffinityUsed(c, usingGroup, preferred.Id)
+								} else if model.IsChannelEnabledForGroupModel(usingGroup, modelRequest.Model, preferred.Id) {
+									if service.ShouldSkipChannelByCircuitBreaker(c, preferred.Id, modelRequest.Model, usingGroup) {
+										// fallthrough to regular random channel selection
+									} else {
+										channel = preferred
+										selectGroup = usingGroup
+										service.MarkChannelAffinityUsed(c, usingGroup, preferred.Id)
+									}
 								}
 							}
 						}

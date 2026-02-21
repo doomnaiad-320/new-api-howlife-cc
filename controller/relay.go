@@ -340,6 +340,15 @@ func shouldRetry(c *gin.Context, openaiErr *types.NewAPIError, retryTimes int) b
 	if code >= 200 && code < 300 {
 		return false
 	}
+	if operation_setting.IsRouterModeV2() {
+		if code < 100 || code > 599 {
+			return true
+		}
+		if code == http.StatusRequestTimeout || code == http.StatusTooManyRequests {
+			return true
+		}
+		return code >= http.StatusInternalServerError
+	}
 	if code < 100 || code > 599 {
 		return true
 	}
@@ -556,6 +565,15 @@ func shouldRetryTaskRelay(c *gin.Context, channelId int, taskErr *dto.TaskError,
 	}
 	if _, ok := c.Get("specific_channel_id"); ok {
 		return false
+	}
+	if operation_setting.IsRouterModeV2() {
+		if taskErr.StatusCode < 100 || taskErr.StatusCode > 599 {
+			return true
+		}
+		if taskErr.StatusCode == http.StatusRequestTimeout || taskErr.StatusCode == http.StatusTooManyRequests {
+			return true
+		}
+		return taskErr.StatusCode >= http.StatusInternalServerError
 	}
 	if taskErr.StatusCode == http.StatusTooManyRequests {
 		return true

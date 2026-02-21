@@ -51,6 +51,7 @@ export default function GeneralSettings(props) {
     'general_setting.custom_currency_exchange_rate': '',
     QuotaPerUnit: '',
     RetryTimes: '',
+    RouterMode: 'v1',
     USDExchangeRate: '',
     DisplayTokenStatEnabled: false,
     DefaultCollapseSidebar: false,
@@ -200,6 +201,17 @@ export default function GeneralSettings(props) {
                   onChange={handleFieldChange('RetryTimes')}
                   showClear
                 />
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={8} xl={8}>
+                <Form.Select
+                  field={'RouterMode'}
+                  label={t('路由模式')}
+                  initValue={'v1'}
+                  onChange={handleFieldChange('RouterMode')}
+                >
+                  <Form.Select.Option value='v1'>v1</Form.Select.Option>
+                  <Form.Select.Option value='v2'>v2</Form.Select.Option>
+                </Form.Select>
               </Col>
               <Col xs={24} sm={12} md={8} lg={8} xl={8}>
                 <Form.Slot label={t('站点额度展示类型及汇率')}>

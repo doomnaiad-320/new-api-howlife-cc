@@ -227,6 +227,106 @@ func GetRandomSatisfiedChannel(group string, model string, retry int) (*Channel,
 	return nil, nil
 }
 
+// ListSatisfiedChannels returns all selectable channels for a given group/model.
+// Order follows cache/DB priority ordering but callers should not rely on weight.
+func ListSatisfiedChannels(group string, model string) ([]*Channel, error) {
+	if !common.MemoryCacheEnabled {
+		return listSatisfiedChannelsFromDB(group, model)
+	}
+
+	channelSyncLock.RLock()
+	defer channelSyncLock.RUnlock()
+
+	channelIDs := group2model2channels[group][model]
+	if len(channelIDs) == 0 {
+		normalizedModel := ratio_setting.FormatMatchingModelName(model)
+		channelIDs = group2model2channels[group][normalizedModel]
+	}
+	if len(channelIDs) == 0 {
+		return []*Channel{}, nil
+	}
+
+	channels := make([]*Channel, 0, len(channelIDs))
+	seen := make(map[int]struct{}, len(channelIDs))
+	for _, channelID := range channelIDs {
+		channel, ok := channelsIDM[channelID]
+		if !ok {
+			return nil, fmt.Errorf("数据库一致性错误，渠道# %d 不存在，请联系管理员修复", channelID)
+		}
+		if _, exists := seen[channelID]; exists {
+			continue
+		}
+		if !isChannelSelectable(channel, group, model) {
+			continue
+		}
+		channels = append(channels, channel)
+		seen[channelID] = struct{}{}
+	}
+	return channels, nil
+}
+
+func listSatisfiedChannelsFromDB(group string, modelName string) ([]*Channel, error) {
+	abilities := make([]Ability, 0)
+	err := DB.Model(&Ability{}).
+		Where(commonGroupCol+" = ? and model = ? and enabled = ?", group, modelName, true).
+		Order("priority DESC, channel_id ASC").
+		Find(&abilities).Error
+	if err != nil {
+		return nil, err
+	}
+	if len(abilities) == 0 {
+		normalizedModel := ratio_setting.FormatMatchingModelName(modelName)
+		if normalizedModel != "" && normalizedModel != modelName {
+			err = DB.Model(&Ability{}).
+				Where(commonGroupCol+" = ? and model = ? and enabled = ?", group, normalizedModel, true).
+				Order("priority DESC, channel_id ASC").
+				Find(&abilities).Error
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+	if len(abilities) == 0 {
+		return []*Channel{}, nil
+	}
+
+	channelIDs := make([]int, 0, len(abilities))
+	seen := make(map[int]struct{}, len(abilities))
+	for _, ability := range abilities {
+		if _, exists := seen[ability.ChannelId]; exists {
+			continue
+		}
+		seen[ability.ChannelId] = struct{}{}
+		channelIDs = append(channelIDs, ability.ChannelId)
+	}
+
+	rawChannels := make([]Channel, 0, len(channelIDs))
+	err = DB.Where("id in ?", channelIDs).Find(&rawChannels).Error
+	if err != nil {
+		return nil, err
+	}
+	channelMap := make(map[int]*Channel, len(rawChannels))
+	for i := range rawChannels {
+		channelMap[rawChannels[i].Id] = &rawChannels[i]
+	}
+
+	channels := make([]*Channel, 0, len(channelIDs))
+	for _, channelID := range channelIDs {
+		channel, ok := channelMap[channelID]
+		if !ok {
+			return nil, fmt.Errorf("数据库一致性错误，渠道# %d 不存在，请联系管理员修复", channelID)
+		}
+		if channel.Status != common.ChannelStatusEnabled {
+			continue
+		}
+		if !isChannelSelectable(channel, group, modelName) {
+			continue
+		}
+		channels = append(channels, channel)
+	}
+	return channels, nil
+}
+
 func CacheGetChannel(id int) (*Channel, error) {
 	if !common.MemoryCacheEnabled {
 		return GetChannelById(id, true)

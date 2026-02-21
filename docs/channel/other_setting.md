@@ -14,6 +14,10 @@
    - 用于标识是否将思考内容`reasoning_content`转换为`<think>`标签拼接到内容中返回
    - 类型为布尔值，设置为 true 时启用思考内容转换
 
+4. fallback_only
+   - 用于标识该渠道是否仅作为兜底渠道参与路由
+   - 类型为布尔值，设置为 true 时仅在 `RouterMode=v2` 且主池无可用渠道时使用
+
 --------------------------------------------------------------
 
 ## JSON 格式示例
@@ -24,7 +28,8 @@
 {
     "force_format": true,
    "thinking_to_content": true,
-    "proxy": "socks5://xxxxxxx"
+    "proxy": "socks5://xxxxxxx",
+    "fallback_only": false
 }
 ```
 
