@@ -23,7 +23,6 @@ import { useTranslation } from 'react-i18next';
 import { API, copy, renderQuota, setUserData, showSuccess } from '../../helpers';
 import { StatusContext } from '../../context/Status';
 import { UserContext } from '../../context/User';
-import { useNotifications } from '../../hooks/common/useNotifications';
 import {
   HomeAnnouncementCard,
   HomeHeroCard,
@@ -62,7 +61,6 @@ const MobileConsoleHome = () => {
     maxCount: 0,
   });
   const [inviteCode, setInviteCode] = useState('');
-  const { unreadCount, handleNoticeClose } = useNotifications(statusState);
 
   const announcements = statusState?.status?.announcements || [];
 
@@ -141,11 +139,6 @@ const MobileConsoleHome = () => {
     }
   };
 
-  const handleOpenNotices = () => {
-    handleNoticeClose();
-    navigate('/console/messages');
-  };
-
   return (
     <div className='h5-console-page h5-home-app-shell h5-home-app-offset px-2 pb-3'>
       <div className='h5-home-app-layout'>
@@ -157,9 +150,6 @@ const MobileConsoleHome = () => {
           statQuota={statQuota}
           requestCount={requestCount}
           onTopup={() => navigate('/console/topup')}
-          onViewLog={() => navigate('/console/log')}
-          noticeUnreadCount={unreadCount}
-          onOpenNotices={handleOpenNotices}
         />
 
         <HomeAnnouncementCard
