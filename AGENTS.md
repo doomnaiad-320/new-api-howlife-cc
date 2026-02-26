@@ -53,6 +53,18 @@ web/           — React frontend
 
 ## Rules
 
+### Rule 0: Frontend Isolation (Highest Priority) — Web and H5 Must Be Independent
+
+All frontend changes MUST strictly isolate Web and H5 behaviors.
+
+- **Web (desktop) must remain unchanged** in layout, style, interaction, and existing visual behavior.
+- **H5 (mobile user-side) can be refactored independently** without affecting Web rendering.
+- **Admin pages must not be modified** unless explicitly requested.
+- For shared components/layouts, use route/device guards so H5-only changes never leak into Web.
+- Before submitting frontend changes, verify:
+  - Web pages keep original style/structure.
+  - H5 pages reflect the intended new behavior.
+
 ### Rule 1: JSON Package — Use `common/json.go`
 
 All JSON marshal/unmarshal operations MUST use the wrapper functions in `common/json.go`:
