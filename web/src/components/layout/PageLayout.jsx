@@ -56,6 +56,7 @@ const PageLayout = () => {
     '/console/models-mobile',
     '/console/messages',
     '/console/personal',
+    '/console/topup',
   ];
 
   const cardProPages = [

@@ -73,6 +73,10 @@ const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
     '/console/messages': '信息',
     '/console/personal': '我的',
   };
+  // H5 sub-pages that manage their own header (back button etc.)
+  const mobileHeadlessRoutes = ['/console/topup'];
+  const isMobileHeadless =
+    isMobile && !isAdmin() && mobileHeadlessRoutes.includes(location.pathname);
   const isMobileUserPrimaryConsole =
     isMobile && !isAdmin() && Boolean(mobileConsoleTitles[location.pathname]);
   const mobileTitle = isMobileUserPrimaryConsole
@@ -106,6 +110,19 @@ const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
           : 'h5-home-topbar--merged'
       }`
     : 'text-semi-color-text-0 sticky top-0 z-50 transition-colors duration-300 bg-white/75 dark:bg-zinc-900/75 backdrop-blur-lg';
+
+  // H5 sub-pages with own header: hide the global headerbar, keep modals
+  if (isMobileHeadless) {
+    return (
+      <NoticeModal
+        visible={noticeVisible}
+        onClose={handleNoticeClose}
+        isMobile={isMobile}
+        defaultTab={unreadCount > 0 ? 'system' : 'inApp'}
+        unreadKeys={getUnreadKeys()}
+      />
+    );
+  }
 
   return (
     <header className={headerClassName}>

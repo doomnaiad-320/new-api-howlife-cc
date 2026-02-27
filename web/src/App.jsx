@@ -60,6 +60,7 @@ const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 const MobileConsoleHome = lazy(() => import('./pages/MobileConsoleHome'));
 const MobileConsoleMessages = lazy(() => import('./pages/MobileConsoleMessages'));
 const MobileConsoleModels = lazy(() => import('./pages/MobileConsoleModels'));
+const MobileConsoleTopup = lazy(() => import('./pages/MobileConsoleTopup'));
 
 function App() {
   const location = useLocation();
@@ -266,7 +267,7 @@ function App() {
           element={
             <PrivateRoute>
               <Suspense fallback={<Loading></Loading>} key={location.pathname}>
-                <TopUp />
+                {isMobile && !isAdminUser ? <MobileConsoleTopup /> : <TopUp />}
               </Suspense>
             </PrivateRoute>
           }

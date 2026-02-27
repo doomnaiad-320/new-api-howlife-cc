@@ -1400,7 +1400,7 @@ html.dark .mobile-console-tabbar {
 
 .h5-app-btn-primary {
   color: #ffffff;
-  background: #171717;
+  background: #6467f2;
   box-shadow: none;
 }
 
@@ -1449,8 +1449,8 @@ html.dark .mobile-console-tabbar {
   padding: 0 8px;
   border-radius: 6px;
   border: none;
-  background: #f5f5f5;
-  color: #9ca3af;
+  background: #eef2ff;
+  color: #6467f2;
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 0;
@@ -1521,7 +1521,7 @@ html.dark .mobile-console-tabbar {
   line-height: 1.1;
   font-weight: 800;
   letter-spacing: -0.03em;
-  color: #0a0a0a;
+  color: #6467f2;
   font-variant-numeric: tabular-nums;
 }
 
@@ -1621,8 +1621,8 @@ html.dark .mobile-console-tabbar {
   justify-content: center;
   font-size: 11px;
   font-weight: 600;
-  color: #6b7280;
-  background: #f5f5f5;
+  color: #6467f2;
+  background: #eef2ff;
 }
 
 .h5-home-app-muted {
@@ -1672,7 +1672,7 @@ html.dark .mobile-console-tabbar {
   height: 5px;
   margin-top: 9px;
   border-radius: 50%;
-  background: #d1d5db;
+  background: #818cf8;
   box-shadow: none;
 }
 
@@ -1681,7 +1681,7 @@ html.dark .mobile-console-tabbar {
   flex: 1;
   margin-top: 4px;
   margin-bottom: -4px;
-  background: #e5e7eb;
+  background: #e0e7ff;
 }
 
 .h5-home-app-timeline-content {
@@ -2047,8 +2047,8 @@ html.dark .h5-home-app-hero::after {
 }
 
 html.dark .h5-home-app-kicker {
-  background: rgba(255, 255, 255, 0.06);
-  color: #71717a;
+  background: rgba(100, 103, 242, 0.12);
+  color: #a5b4fc;
 }
 
 html.dark .h5-home-app-online {
@@ -2070,7 +2070,7 @@ html.dark .h5-home-app-hero-title {
 }
 
 html.dark .h5-home-app-balance-value {
-  color: #fafafa;
+  color: #a5b4fc;
 }
 
 html.dark .h5-home-app-metric {
@@ -2097,8 +2097,8 @@ html.dark .h5-home-app-metric:nth-child(3) .h5-home-app-metric-value {
 }
 
 html.dark .h5-app-btn-primary {
-  background: #fafafa;
-  color: #0a0a0a;
+  background: #eef2ff;
+  color: #312e81;
   box-shadow: none;
 }
 
@@ -2124,8 +2124,8 @@ html.dark .h5-home-app-timeline-time {
 }
 
 html.dark .h5-home-app-badge {
-  color: #71717a;
-  background: rgba(255, 255, 255, 0.06);
+  color: #a5b4fc;
+  background: rgba(100, 103, 242, 0.15);
 }
 
 html.dark .h5-home-app-empty {
@@ -2134,12 +2134,12 @@ html.dark .h5-home-app-empty {
 }
 
 html.dark .h5-home-app-timeline-marker {
-  background: #3f3f46;
+  background: #6467f2;
   box-shadow: none;
 }
 
 html.dark .h5-home-app-timeline-line {
-  background: #27272a;
+  background: #312e81;
 }
 
 html.dark .h5-home-app-timeline-content {
@@ -2263,4 +2263,750 @@ html.dark .h5-home-app-section-title {
 
 html.dark .h5-home-app-section-sub {
   color: #52525b;
+}
+
+/* ─── H5 语义色 Semantic Colors ─── */
+
+/* 折扣 / 促销 */
+.h5-text-discount {
+  color: #e11d48;
+}
+
+.h5-text-original-price {
+  color: #d1d5db;
+  text-decoration: line-through;
+}
+
+.h5-bg-discount {
+  color: #e11d48;
+  background: #fff1f2;
+}
+
+/* 错误 / 危险 */
+.h5-text-error {
+  color: #dc2626;
+}
+
+.h5-bg-error {
+  color: #dc2626;
+  background: #fef2f2;
+  border: 1px solid rgba(220, 38, 38, 0.2);
+  border-radius: 10px;
+  padding: 8px 12px;
+}
+
+/* 警告 / 提醒 */
+.h5-text-warning {
+  color: #d97706;
+}
+
+.h5-bg-warning {
+  color: #d97706;
+  background: #fffbeb;
+  border: 1px solid rgba(217, 119, 6, 0.2);
+  border-radius: 10px;
+  padding: 8px 12px;
+}
+
+/* 成功 / 完成 */
+.h5-text-success {
+  color: #16a34a;
+}
+
+.h5-bg-success {
+  color: #16a34a;
+  background: #f0fdf4;
+  border: 1px solid rgba(22, 163, 74, 0.2);
+  border-radius: 10px;
+  padding: 8px 12px;
+}
+
+/* 信息 / 提示 (复用品牌色) */
+.h5-text-info {
+  color: #6467f2;
+}
+
+.h5-bg-info {
+  color: #6467f2;
+  background: #eef2ff;
+  border: 1px solid rgba(100, 103, 242, 0.2);
+  border-radius: 10px;
+  padding: 8px 12px;
+}
+
+/* 金额语义 */
+.h5-text-income {
+  color: #16a34a;
+}
+
+.h5-text-expense {
+  color: #0a0a0a;
+}
+
+/* 状态标签 */
+.h5-tag-active {
+  color: #6467f2;
+  background: #eef2ff;
+}
+
+.h5-tag-done {
+  color: #16a34a;
+  background: #f0fdf4;
+}
+
+.h5-tag-failed {
+  color: #dc2626;
+  background: #fef2f2;
+}
+
+.h5-tag-expired {
+  color: #9ca3af;
+  background: #f5f5f5;
+}
+
+/* ─── 语义色 Dark Mode ─── */
+html.dark .h5-text-discount {
+  color: #fb7185;
+}
+
+html.dark .h5-text-original-price {
+  color: #3f3f46;
+}
+
+html.dark .h5-bg-discount {
+  color: #fb7185;
+  background: rgba(225, 29, 72, 0.12);
+}
+
+html.dark .h5-text-error {
+  color: #f87171;
+}
+
+html.dark .h5-bg-error {
+  color: #f87171;
+  background: rgba(220, 38, 38, 0.1);
+  border-color: rgba(248, 113, 113, 0.2);
+}
+
+html.dark .h5-text-warning {
+  color: #fbbf24;
+}
+
+html.dark .h5-bg-warning {
+  color: #fbbf24;
+  background: rgba(217, 119, 6, 0.1);
+  border-color: rgba(251, 191, 36, 0.2);
+}
+
+html.dark .h5-text-success {
+  color: #4ade80;
+}
+
+html.dark .h5-bg-success {
+  color: #4ade80;
+  background: rgba(22, 163, 74, 0.1);
+  border-color: rgba(74, 222, 128, 0.2);
+}
+
+html.dark .h5-text-info {
+  color: #a5b4fc;
+}
+
+html.dark .h5-bg-info {
+  color: #a5b4fc;
+  background: rgba(100, 103, 242, 0.1);
+  border-color: rgba(165, 180, 252, 0.2);
+}
+
+html.dark .h5-text-income {
+  color: #4ade80;
+}
+
+html.dark .h5-text-expense {
+  color: #e4e4e7;
+}
+
+html.dark .h5-tag-active {
+  color: #a5b4fc;
+  background: rgba(100, 103, 242, 0.12);
+}
+
+html.dark .h5-tag-done {
+  color: #4ade80;
+  background: rgba(22, 163, 74, 0.1);
+}
+
+html.dark .h5-tag-failed {
+  color: #f87171;
+  background: rgba(220, 38, 38, 0.1);
+}
+
+html.dark .h5-tag-expired {
+  color: #71717a;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* ==================== H5 充值页 ==================== */
+
+.h5-topup-page {
+  position: relative;
+  max-width: 760px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  background: linear-gradient(180deg, #f8fbff 0%, #f8fafc 36%, #f8fafc 100%);
+  font-family:
+    -apple-system, 'SF Pro Text', 'Helvetica Neue', 'PingFang SC',
+    'Microsoft YaHei', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── Header ─── */
+
+.h5-topup-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: calc(52px + env(safe-area-inset-top));
+  padding: env(safe-area-inset-top) 12px 0;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.h5-topup-back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: #0a0a0a;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.h5-topup-back:active {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.h5-topup-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0a0a0a;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.h5-topup-header-right {
+  width: 36px;
+}
+
+/* ─── Body ─── */
+
+.h5-topup-body {
+  padding: calc(52px + env(safe-area-inset-top) + 12px) 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+/* ─── Card ─── */
+
+.h5-topup-card {
+  border-radius: 14px;
+  padding: 18px 16px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+}
+
+/* ─── Balance ─── */
+
+.h5-topup-balance {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.h5-topup-balance-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.h5-topup-balance-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: #2563eb;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.h5-topup-divider {
+  height: 1px;
+  background: rgba(148, 163, 184, 0.2);
+  margin: 14px 0;
+}
+
+/* ─── Section ─── */
+
+.h5-topup-section {
+  margin-top: 16px;
+}
+
+.h5-topup-section:first-child {
+  margin-top: 0;
+}
+
+.h5-topup-section-title {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 10px;
+}
+
+/* ─── Preset Grid ─── */
+
+.h5-topup-preset-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.h5-topup-preset-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-height: 72px;
+  padding: 12px 6px 10px;
+  border: 1.5px solid #dbe5f3;
+  border-radius: 10px;
+  background: #f8fafc;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.h5-topup-preset-item:active {
+  background: #eff6ff;
+}
+
+.h5-topup-preset-item.is-selected {
+  border-color: #2563eb;
+  background: #eaf2ff;
+}
+
+.h5-topup-preset-amount {
+  font-size: 12px;
+  font-weight: 500;
+  color: #94a3b8;
+  letter-spacing: -0.01em;
+}
+
+.h5-topup-preset-item.is-selected .h5-topup-preset-amount {
+  color: #475569;
+}
+
+.h5-topup-preset-discount {
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, #e11d48, #f43f5e);
+  padding: 2px 7px 3px;
+  border-radius: 0 9px 0 8px;
+  line-height: 1.3;
+  letter-spacing: 0.02em;
+  box-shadow: 0 1px 4px rgba(225, 29, 72, 0.3);
+  z-index: 2;
+}
+
+.h5-topup-preset-pay {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-top: 1px;
+  font-variant-numeric: tabular-nums;
+}
+
+.h5-topup-preset-item.has-discount .h5-topup-preset-pay {
+  color: #be123c;
+}
+
+.h5-topup-preset-item.is-selected .h5-topup-preset-pay {
+  color: #2563eb;
+}
+
+.h5-topup-preset-item.is-selected.has-discount .h5-topup-preset-pay {
+  color: #e11d48;
+}
+
+/* ─── Input ─── */
+
+.h5-topup-input {
+  display: block;
+  width: 100%;
+  height: 42px;
+  padding: 0 12px;
+  border: 1.5px solid #dbe5f3;
+  border-radius: 10px;
+  background: #f8fafc;
+  font-size: 15px;
+  color: #0a0a0a;
+  outline: none;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+}
+
+.h5-topup-input::placeholder {
+  color: #94a3b8;
+}
+
+.h5-topup-input:focus {
+  border-color: #2563eb;
+  background: #ffffff;
+}
+
+/* ─── Pay Summary ─── */
+
+.h5-topup-pay-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+  padding: 0 2px;
+}
+
+.h5-topup-pay-label {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.h5-topup-pay-value {
+  font-size: 17px;
+  font-weight: 700;
+  color: #2563eb;
+  font-variant-numeric: tabular-nums;
+}
+
+.h5-topup-dot-loading {
+  color: #9ca3af;
+  letter-spacing: 2px;
+}
+
+/* ─── Payment Methods ─── */
+
+.h5-topup-pay-methods {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.h5-topup-pay-btn {
+  height: 38px;
+  padding: 0 14px;
+  border: 1.5px solid #dbe5f3;
+  border-radius: 10px;
+  background: #f8fafc;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.h5-topup-pay-btn:active {
+  background: #eff6ff;
+}
+
+.h5-topup-pay-btn.is-selected {
+  border-color: #2563eb;
+  background: #eaf2ff;
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.h5-topup-pay-btn.is-disabled,
+.h5-topup-pay-btn:disabled {
+  border-color: #e2e8f0;
+  background: #f1f5f9;
+  color: #94a3b8;
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+.h5-topup-helper-error {
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  border: 1px solid rgba(234, 88, 12, 0.25);
+  border-radius: 10px;
+  background: #fff7ed;
+  color: #c2410c;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* ─── Submit Button ─── */
+
+.h5-topup-submit {
+  width: 100%;
+  height: 46px;
+  margin-top: 20px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  border: none;
+  box-shadow: 0 10px 18px rgba(37, 99, 235, 0.2);
+}
+
+.h5-topup-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ─── Redeem Card ─── */
+
+.h5-topup-redeem-card {
+  padding: 16px;
+}
+
+.h5-topup-redeem-row {
+  display: flex;
+  gap: 8px;
+}
+
+.h5-topup-redeem-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.h5-topup-redeem-btn {
+  flex-shrink: 0;
+  height: 42px;
+  padding: 0 18px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.h5-topup-redeem-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.h5-topup-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 10px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  color: #2563eb;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.h5-topup-link-btn:active {
+  opacity: 0.7;
+}
+
+/* ─── Responsive ─── */
+
+@media (max-width: 360px) {
+  .h5-topup-preset-grid {
+    gap: 6px;
+  }
+
+  .h5-topup-preset-item {
+    min-height: 64px;
+    padding: 10px 4px 8px;
+  }
+
+  .h5-topup-preset-amount {
+    font-size: 11px;
+  }
+
+  .h5-topup-balance-value {
+    font-size: 20px;
+  }
+
+  .h5-topup-pay-methods {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ─── Dark Mode ─── */
+
+html.dark .h5-topup-page {
+  background: transparent;
+}
+
+html.dark .h5-topup-header {
+  background: rgba(10, 10, 10, 0.92);
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
+html.dark .h5-topup-back {
+  color: #fafafa;
+}
+
+html.dark .h5-topup-back:active {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+html.dark .h5-topup-title {
+  color: #fafafa;
+}
+
+html.dark .h5-topup-card {
+  background: #171717;
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+html.dark .h5-topup-balance-row {
+  color: #a1a1aa;
+}
+
+html.dark .h5-topup-balance-value {
+  color: #a5b4fc;
+}
+
+html.dark .h5-topup-divider {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+html.dark .h5-topup-section-title {
+  color: #fafafa;
+}
+
+html.dark .h5-topup-preset-item {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: #262626;
+}
+
+html.dark .h5-topup-preset-item:active {
+  background: #303030;
+}
+
+html.dark .h5-topup-preset-item.is-selected {
+  border-color: #60a5fa;
+  background: rgba(59, 130, 246, 0.14);
+}
+
+html.dark .h5-topup-preset-amount {
+  color: #71717a;
+}
+
+html.dark .h5-topup-preset-item.is-selected .h5-topup-preset-amount {
+  color: #a1a1aa;
+}
+
+html.dark .h5-topup-preset-discount {
+  color: #fff;
+  background: linear-gradient(135deg, #e11d48, #f43f5e);
+  box-shadow: 0 1px 6px rgba(225, 29, 72, 0.4);
+}
+
+html.dark .h5-topup-preset-pay {
+  color: #e4e4e7;
+}
+
+html.dark .h5-topup-preset-item.has-discount .h5-topup-preset-pay {
+  color: #fb7185;
+}
+
+html.dark .h5-topup-preset-item.is-selected .h5-topup-preset-pay {
+  color: #a5b4fc;
+}
+
+html.dark .h5-topup-preset-item.is-selected.has-discount .h5-topup-preset-pay {
+  color: #fb7185;
+}
+
+html.dark .h5-topup-input {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: #262626;
+  color: #fafafa;
+}
+
+html.dark .h5-topup-input::placeholder {
+  color: #3f3f46;
+}
+
+html.dark .h5-topup-input:focus {
+  border-color: #60a5fa;
+  background: #1a1a1a;
+}
+
+html.dark .h5-topup-pay-label {
+  color: #a1a1aa;
+}
+
+html.dark .h5-topup-pay-value {
+  color: #93c5fd;
+}
+
+html.dark .h5-topup-pay-btn {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: #262626;
+  color: #fafafa;
+}
+
+html.dark .h5-topup-pay-btn:active {
+  background: #303030;
+}
+
+html.dark .h5-topup-pay-btn.is-selected {
+  border-color: #60a5fa;
+  background: rgba(59, 130, 246, 0.14);
+  color: #93c5fd;
+}
+
+html.dark .h5-topup-pay-btn.is-disabled,
+html.dark .h5-topup-pay-btn:disabled {
+  border-color: rgba(255, 255, 255, 0.06);
+  background: #202020;
+  color: #52525b;
+  opacity: 0.7;
+}
+
+html.dark .h5-topup-helper-error {
+  border-color: rgba(251, 191, 36, 0.25);
+  background: rgba(217, 119, 6, 0.12);
+  color: #fbbf24;
+}
+
+html.dark .h5-topup-redeem-card {
+  background: #171717;
+}
+
+html.dark .h5-topup-link-btn {
+  color: #93c5fd;
 }
