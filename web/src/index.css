@@ -1360,10 +1360,11 @@ html.dark .h5-home-stat-item {
 
 .h5-log-meta-pill {
   display: inline-flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   min-width: 0;
-  padding: 8px;
+  padding: 7px 8px;
   border-radius: 12px;
   border: 1px solid rgba(148, 163, 184, 0.28);
   background: rgba(248, 250, 252, 0.78);
@@ -1371,15 +1372,19 @@ html.dark .h5-home-stat-item {
 
 .h5-log-meta-pill .semi-typography {
   font-size: 11px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .h5-log-meta-pill strong {
   font-size: 12px;
   font-weight: 600;
   color: #111827;
+  min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-align: right;
 }
 
 .h5-log-token-layer {
@@ -1470,29 +1475,36 @@ html.dark .h5-home-stat-item {
 
 .h5-log-performance {
   margin-top: 10px;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: flex;
   gap: 8px;
 }
 
 .h5-log-performance-item {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
   border-radius: 12px;
   border: 1px solid rgba(148, 163, 184, 0.24);
   background: rgba(255, 255, 255, 0.72);
-  padding: 8px;
+  padding: 7px 10px;
 }
 
 .h5-log-performance-item span {
   font-size: 11px;
   color: #6b7280;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .h5-log-performance-item strong {
   font-size: 13px;
   color: #111827;
+  min-width: 0;
+  white-space: nowrap;
+  text-align: right;
   font-family:
     ui-monospace,
     SFMono-Regular,
