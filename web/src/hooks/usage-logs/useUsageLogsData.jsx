@@ -453,7 +453,7 @@ export const useLogsData = () => {
           } else {
             expandDataLocal.push({
               key: t('模型'),
-              value: other.upstream_model_name,
+              value: logs[i].model_name,
             });
           }
         }

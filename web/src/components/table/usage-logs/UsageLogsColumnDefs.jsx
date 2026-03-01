@@ -229,16 +229,8 @@ function renderModelName(record, copyText, t, isAdminUser) {
     other?.is_model_mapped &&
     other?.upstream_model_name &&
     other?.upstream_model_name !== '';
-  const displayModelName = modelMapped
-    ? other.upstream_model_name
-    : record.model_name;
-  if (!modelMapped) {
-    return renderModelTag(displayModelName, {
-      onClick: (event) => {
-        copyText(event, displayModelName).then((r) => {});
-      },
-    });
-  } else if (!isAdminUser) {
+  const displayModelName = record.model_name;
+  if (!modelMapped || !isAdminUser) {
     return renderModelTag(displayModelName, {
       onClick: (event) => {
         copyText(event, displayModelName).then((r) => {});
