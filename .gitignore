@@ -20,6 +20,10 @@ tiktoken_cache
 .cache
 web/bun.lock
 plans
+/release
+/docs
+/.shared
+.env
 
 electron/node_modules
 electron/dist

@@ -1,0 +1,52 @@
+# =========================
+# 基础运行配置
+# =========================
+PORT=3000
+TZ=Asia/Shanghai
+DEBUG=false
+NODE_TYPE=master
+
+# 必填密钥
+SESSION_SECRET=howlife_session_secret_change_me_2026
+CRYPTO_SECRET=howlife_crypto_secret_change_me_2026
+
+# =========================
+# 数据库（本地 MySQL）
+# =========================
+SQL_DSN=howlife:N64fzAFW4AdbYmne@tcp(127.0.0.1:3306)/howlife?parseTime=true
+SQL_MAX_IDLE_CONNS=120
+SQL_MAX_OPEN_CONNS=1200
+SQL_MAX_LIFETIME=300
+
+# =========================
+# Redis 缓存（启用）
+# =========================
+REDIS_CONN_STRING=redis://127.0.0.1:6379/0
+REDIS_POOL_SIZE=120
+MEMORY_CACHE_ENABLED=true
+SYNC_FREQUENCY=60
+
+# =========================
+# 请求与并发相关
+# =========================
+RELAY_MAX_IDLE_CONNS=2000
+RELAY_MAX_IDLE_CONNS_PER_HOST=400
+RELAY_TIMEOUT=0
+STREAMING_TIMEOUT=600
+
+# 批量更新
+BATCH_UPDATE_ENABLED=true
+BATCH_UPDATE_INTERVAL=5
+UPDATE_TASK=true
+
+# 稳定性与安全
+TLS_INSECURE_SKIP_VERIFY=false
+ERROR_LOG_ENABLED=true
+FORCE_STREAM_OPTION=true
+MAX_REQUEST_BODY_MB=128
+STREAM_SCANNER_MAX_BUFFER_MB=64
+MAX_FILE_DOWNLOAD_MB=64
+
+# 其他常用
+GENERATE_DEFAULT_TOKEN=false
+DIFY_DEBUG=false

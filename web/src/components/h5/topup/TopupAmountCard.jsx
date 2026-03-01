@@ -44,6 +44,10 @@ const TopupAmountCard = ({
   priceRatio,
   quotaDisplayType,
   quotaPerUnit,
+  promoCode,
+  setPromoCode,
+  canUsePromoCode,
+  rebatePercent,
 }) => {
   const debounceRef = useRef(null);
   const currentTopUpCount = Number(topUpCount) || 0;
@@ -188,6 +192,24 @@ const TopupAmountCard = ({
           </span>
         </div>
       </div>
+
+      {/* Promo Code */}
+      {canUsePromoCode && (
+        <div className='h5-topup-section'>
+          <h4 className='h5-topup-section-title'>{t('优惠码')}</h4>
+          <input
+            type='text'
+            className='h5-topup-input h5-topup-promo-input'
+            placeholder={t('输入邀请码享受折扣')}
+            value={promoCode}
+            maxLength={32}
+            onChange={(e) => setPromoCode(e.target.value)}
+          />
+          <p className='h5-topup-promo-hint'>
+            {t('可叠加享受 {{percent}}% 折扣', { percent: rebatePercent })}
+          </p>
+        </div>
+      )}
 
       {/* Payment Methods */}
       {payMethods.length > 0 && (

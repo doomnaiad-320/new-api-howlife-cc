@@ -1254,34 +1254,268 @@ html.dark .h5-home-stat-item {
   color: var(--semi-color-text-1);
 }
 
-.h5-log-row {
+.h5-log-card-list {
+  position: relative;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-top: 4px;
+  flex-direction: column;
+  gap: 12px;
+  padding: 2px;
 }
 
-.h5-log-grid {
-  margin-top: 6px;
+.h5-log-card-list::before {
+  content: '';
+  position: absolute;
+  inset: -10px -8px auto -8px;
+  height: 220px;
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(59, 130, 246, 0.2), transparent 56%),
+    radial-gradient(circle at 88% 0%, rgba(148, 163, 184, 0.2), transparent 52%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.h5-log-card-list > * {
+  position: relative;
+  z-index: 1;
+}
+
+.h5-log-card {
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.48);
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.07);
+}
+
+.h5-log-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.h5-log-model-btn {
+  width: 100%;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  justify-content: flex-start !important;
+}
+
+.h5-log-model-title {
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.4;
+  color: #1c1c1e;
+  text-align: left;
+  word-break: break-all;
+}
+
+.h5-log-time {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.h5-log-status-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 56px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  padding: 2px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.h5-log-status-chip.is-success {
+  color: #065f46;
+  background: rgba(16, 185, 129, 0.16);
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+.h5-log-status-chip.is-warning {
+  color: #92400e;
+  background: rgba(245, 158, 11, 0.18);
+  border-color: rgba(245, 158, 11, 0.36);
+}
+
+.h5-log-status-chip.is-fail {
+  color: #b91c1c;
+  background: rgba(244, 63, 94, 0.14);
+  border-color: rgba(244, 63, 94, 0.34);
+}
+
+.h5-log-meta-row {
+  margin-top: 10px;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.h5-log-meta-pill {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: rgba(248, 250, 252, 0.78);
+}
+
+.h5-log-meta-pill .semi-typography {
+  font-size: 11px;
+}
+
+.h5-log-meta-pill strong {
+  font-size: 12px;
+  font-weight: 600;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.h5-log-token-layer {
+  margin-top: 12px;
+}
+
+.h5-log-token-stats {
+  display: flex;
+  justify-content: space-between;
   gap: 8px;
   font-size: 12px;
 }
 
-.h5-log-error {
+.h5-log-token-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #4b5563;
+}
+
+.h5-log-token-item strong {
+  color: #111827;
+}
+
+.h5-log-token-bar-container {
+  display: flex;
+  height: 4px;
+  border-radius: 2px;
+  overflow: hidden;
+  background: #f2f2f7;
+  margin: 8px 0 6px;
+}
+
+.h5-log-token-bar-input {
+  background: #10b981;
+  transition: width 0.3s ease;
+}
+
+.h5-log-token-bar-output {
+  background: #3b82f6;
+  transition: width 0.3s ease;
+}
+
+.h5-log-token-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.h5-log-snippet {
   margin-top: 10px;
-  border-radius: 10px;
-  border: 1px solid rgba(var(--semi-red-5), 0.24);
-  background: rgba(var(--semi-red-0), 0.18);
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  background: rgba(241, 245, 249, 0.86);
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.h5-log-snippet-label {
+  display: block;
+  font-size: 11px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.h5-log-snippet code {
+  display: block;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #0f172a;
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    'Liberation Mono',
+    'Courier New',
+    monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.h5-log-performance {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.h5-log-performance-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  background: rgba(255, 255, 255, 0.72);
   padding: 8px;
+}
+
+.h5-log-performance-item span {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.h5-log-performance-item strong {
+  font-size: 13px;
+  color: #111827;
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    'Liberation Mono',
+    'Courier New',
+    monospace;
+}
+
+.h5-log-error {
+  margin-top: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(244, 63, 94, 0.3);
+  background: rgba(255, 59, 48, 0.1);
+  padding: 10px;
 }
 
 .h5-log-error-title {
   font-size: 12px;
   font-weight: 600;
-  color: rgba(var(--semi-red-7), 1);
+  color: #b91c1c;
 }
 
 .h5-log-error-content {
@@ -1289,6 +1523,7 @@ html.dark .h5-home-stat-item {
   white-space: pre-wrap;
   word-break: break-word;
   font-size: 12px;
+  color: #881337;
 }
 
 .h5-log-details {
@@ -1299,6 +1534,79 @@ html.dark .h5-home-stat-item {
   cursor: pointer;
   color: var(--semi-color-primary);
   font-size: 12px;
+}
+
+html.dark .h5-log-card-list::before {
+  background:
+    radial-gradient(circle at 12% 8%, rgba(59, 130, 246, 0.28), transparent 56%),
+    radial-gradient(circle at 88% 0%, rgba(148, 163, 184, 0.26), transparent 52%);
+}
+
+html.dark .h5-log-card {
+  border-color: rgba(148, 163, 184, 0.22);
+  background: rgba(15, 23, 42, 0.78);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.32);
+}
+
+html.dark .h5-log-model-title {
+  color: rgba(248, 250, 252, 0.96);
+}
+
+html.dark .h5-log-time,
+html.dark .h5-log-token-foot,
+html.dark .h5-log-snippet-label,
+html.dark .h5-log-performance-item span,
+html.dark .h5-log-token-item {
+  color: rgba(203, 213, 225, 0.88);
+}
+
+html.dark .h5-log-meta-pill,
+html.dark .h5-log-snippet,
+html.dark .h5-log-performance-item {
+  border-color: rgba(148, 163, 184, 0.24);
+  background: rgba(30, 41, 59, 0.64);
+}
+
+html.dark .h5-log-meta-pill strong,
+html.dark .h5-log-token-item strong,
+html.dark .h5-log-performance-item strong,
+html.dark .h5-log-snippet code {
+  color: rgba(241, 245, 249, 0.96);
+}
+
+html.dark .h5-log-token-bar-container {
+  background: rgba(71, 85, 105, 0.55);
+}
+
+html.dark .h5-log-status-chip.is-success {
+  color: #6ee7b7;
+  background: rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.38);
+}
+
+html.dark .h5-log-status-chip.is-warning {
+  color: #fcd34d;
+  background: rgba(245, 158, 11, 0.24);
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+html.dark .h5-log-status-chip.is-fail {
+  color: #fda4af;
+  background: rgba(244, 63, 94, 0.2);
+  border-color: rgba(244, 63, 94, 0.38);
+}
+
+html.dark .h5-log-error {
+  border-color: rgba(244, 63, 94, 0.36);
+  background: rgba(190, 24, 93, 0.2);
+}
+
+html.dark .h5-log-error-title {
+  color: #fda4af;
+}
+
+html.dark .h5-log-error-content {
+  color: #fecdd3;
 }
 
 html.dark .mobile-console-tabbar {

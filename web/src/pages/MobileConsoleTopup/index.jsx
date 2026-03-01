@@ -52,6 +52,10 @@ const MobileConsoleTopup = () => {
   const [payWay, setPayWay] = useState('');
   const [presetPayAmounts, setPresetPayAmounts] = useState({});
   const [topUpLink, setTopUpLink] = useState('');
+  const [promoCode, setPromoCode] = useState('');
+  const [rebatePercent, setRebatePercent] = useState(0);
+  const [rebateMaxCount, setRebateMaxCount] = useState(0);
+  const [userTopupCount, setUserTopupCount] = useState(0);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [amountLoading, setAmountLoading] = useState(false);
@@ -69,6 +73,7 @@ const MobileConsoleTopup = () => {
   const priceRatio = Number(statusState?.status?.price ?? cachedStatus?.price ?? 1) || 1;
   const quotaDisplayType = localStorage.getItem('quota_display_type') || 'USD';
   const quotaPerUnit = Number(localStorage.getItem('quota_per_unit')) || 1;
+  const canUsePromoCode = rebatePercent > 0 && rebateMaxCount > 0 && userTopupCount < rebateMaxCount;
   const normalizeTopUpCount = (value, fallback = minTopUp) => {
     const fallbackValue = Number(fallback);
     const safeFallback = Number.isFinite(fallbackValue) && fallbackValue > 0 ? Math.floor(fallbackValue) : 1;
@@ -108,11 +113,14 @@ const MobileConsoleTopup = () => {
     } catch {}
   };
 
-  const getAmount = async (value) => {
+  const getAmount = async (value, promo = promoCode) => {
     if (value === undefined) value = topUpCount;
     setAmountLoading(true);
     try {
-      const res = await API.post('/api/user/amount', { amount: parseFloat(value) });
+      const res = await API.post('/api/user/amount', {
+        amount: parseFloat(value),
+        promo_code: String(promo || '').trim(),
+      });
       if (res?.data?.message === 'success') {
         setAmount(parseFloat(res.data.data));
       }
@@ -122,11 +130,14 @@ const MobileConsoleTopup = () => {
     setAmountLoading(false);
   };
 
-  const getStripeAmount = async (value) => {
+  const getStripeAmount = async (value, promo = promoCode) => {
     if (value === undefined) value = topUpCount;
     setAmountLoading(true);
     try {
-      const res = await API.post('/api/user/stripe/amount', { amount: parseFloat(value) });
+      const res = await API.post('/api/user/stripe/amount', {
+        amount: parseFloat(value),
+        promo_code: String(promo || '').trim(),
+      });
       if (res?.data?.message === 'success') {
         setAmount(parseFloat(res.data.data));
       }
@@ -136,13 +147,13 @@ const MobileConsoleTopup = () => {
     setAmountLoading(false);
   };
 
-  const refreshAmountForMethod = async (value, methodType = payWay) => {
+  const refreshAmountForMethod = async (value, methodType = payWay, promo = promoCode) => {
     const normalizedAmount = normalizeTopUpCount(value);
     if (methodType === 'stripe') {
-      await getStripeAmount(normalizedAmount);
+      await getStripeAmount(normalizedAmount, promo);
       return;
     }
-    await getAmount(normalizedAmount);
+    await getAmount(normalizedAmount, promo);
   };
 
   const topUp = async () => {
@@ -179,6 +190,7 @@ const MobileConsoleTopup = () => {
     }
 
     const normalizedAmount = normalizeTopUpCount(topUpCount);
+    const normalizedPromoCode = String(promoCode || '').trim();
     const methodMinTopUp = getMethodMinTopUp(payWay);
     const requiredMinTopUp = Math.max(Number(minTopUp) || 1, methodMinTopUp);
     if (normalizedAmount < requiredMinTopUp) {
@@ -193,18 +205,20 @@ const MobileConsoleTopup = () => {
     setPaymentLoading(true);
     try {
       // Refresh amount before payment
-      await refreshAmountForMethod(normalizedAmount, payWay);
+      await refreshAmountForMethod(normalizedAmount, payWay, normalizedPromoCode);
 
       let res;
       if (payWay === 'stripe') {
         res = await API.post('/api/user/stripe/pay', {
           amount: normalizedAmount,
           payment_method: 'stripe',
+          promo_code: normalizedPromoCode,
         });
       } else {
         res = await API.post('/api/user/pay', {
           amount: normalizedAmount,
           payment_method: payWay,
+          promo_code: normalizedPromoCode,
         });
       }
 
@@ -298,6 +312,9 @@ const MobileConsoleTopup = () => {
       const stripe = data.enable_stripe_topup || false;
       setEnableOnlineTopUp(online);
       setEnableStripeTopUp(stripe);
+      setRebatePercent(Number(data.topup_rebate_percent) || 0);
+      setRebateMaxCount(Number(data.topup_rebate_max_count) || 0);
+      setUserTopupCount(Number(data.user_topup_count) || 0);
       const minVal = online ? data.min_topup : stripe ? data.stripe_min_topup : 1;
       const normalizedMin = normalizeTopUpCount(minVal, 1);
       setMinTopUp(normalizedMin);
@@ -351,6 +368,17 @@ const MobileConsoleTopup = () => {
   }, [payWay]);
 
   useEffect(() => {
+    if (!canUsePromoCode) {
+      if (promoCode) setPromoCode('');
+      return;
+    }
+    const timer = setTimeout(() => {
+      refreshAmountForMethod(topUpCount, payWay, promoCode);
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [promoCode, canUsePromoCode]);
+
+  useEffect(() => {
     if (presetAmounts.length > 0) fetchPresetPayAmounts(presetAmounts);
   }, [presetAmounts]);
 
@@ -388,6 +416,10 @@ const MobileConsoleTopup = () => {
           priceRatio={priceRatio}
           quotaDisplayType={quotaDisplayType}
           quotaPerUnit={quotaPerUnit}
+          promoCode={promoCode}
+          setPromoCode={setPromoCode}
+          canUsePromoCode={canUsePromoCode}
+          rebatePercent={rebatePercent}
         />
 
         <TopupRedeemCard

@@ -24,7 +24,6 @@ import {
   Descriptions,
   Empty,
   Skeleton,
-  Tag,
   Typography,
 } from '@douyinfe/semi-ui';
 import CardTable from '../../common/ui/CardTable';
@@ -98,26 +97,117 @@ const LogsTable = (logsData) => {
     return <Descriptions data={expandData[record.key]} />;
   };
 
-  const getStatusMeta = (record) => {
-    if (record.type === 5) {
-      return { text: t('失败'), color: 'red' };
+  const parseStatusCode = (value) => {
+    if (Number.isInteger(value) && value >= 100 && value <= 599) {
+      return value;
     }
-    if (record.type === 2) {
-      return { text: t('成功'), color: 'green' };
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      const intValue = Math.trunc(value);
+      if (intValue >= 100 && intValue <= 599) {
+        return intValue;
+      }
     }
-    return { text: t('其他'), color: 'grey' };
+    if (typeof value === 'string') {
+      const pure = value.trim();
+      if (/^\d{3}$/.test(pure)) {
+        const parsed = Number(pure);
+        if (parsed >= 100 && parsed <= 599) {
+          return parsed;
+        }
+      }
+      const matched = pure.match(/\b([1-5]\d{2})\b/);
+      if (matched?.[1]) {
+        const parsed = Number(matched[1]);
+        if (parsed >= 100 && parsed <= 599) {
+          return parsed;
+        }
+      }
+    }
+    return null;
   };
 
-  const getFailureReason = (record) => {
-    if (record.type !== 5) return '';
-    const other = getLogOther(record.other) || {};
+  const getStatusCodeFromRecord = (record, other) => {
+    const candidates = [
+      record?.status_code,
+      record?.statusCode,
+      other?.status_code,
+      other?.statusCode,
+      other?.status,
+      other?.http_status,
+      other?.httpStatus,
+      other?.response_status,
+      other?.responseStatus,
+      other?.upstream_status,
+      other?.upstream_status_code,
+      other?.admin_info?.status_code,
+      other?.admin_info?.http_status,
+    ];
+    for (const candidate of candidates) {
+      const parsed = parseStatusCode(candidate);
+      if (parsed !== null) return parsed;
+    }
+    return null;
+  };
+
+  const getStatusMeta = (record, other) => {
+    const statusCode = getStatusCodeFromRecord(record, other);
+    if (statusCode !== null) {
+      if (statusCode >= 200 && statusCode < 300) {
+        return { text: t('成功'), className: 'is-success', isFailure: false, statusCode };
+      }
+      if (statusCode >= 400) {
+        return { text: t('失败'), className: 'is-fail', isFailure: true, statusCode };
+      }
+      return { text: t('其他'), className: 'is-warning', isFailure: false, statusCode };
+    }
+    if (record.type === 5) {
+      return { text: t('失败'), className: 'is-fail', isFailure: true, statusCode: null };
+    }
+    if (record.type === 2) {
+      return { text: t('成功'), className: 'is-success', isFailure: false, statusCode: null };
+    }
+    return { text: t('其他'), className: 'is-warning', isFailure: false, statusCode: null };
+  };
+
+  const getFailureReason = (record, other, statusMeta) => {
+    if (!statusMeta?.isFailure) return '';
     return (
-      other.reject_reason ||
-      other.error ||
-      other.message ||
-      record.content ||
-      t('未知错误')
+      other?.reject_reason ||
+      other?.error ||
+      other?.message ||
+      other?.upstream_error_type ||
+      other?.upstream_error_code ||
+      (record.type === 5 ? record.content : '') ||
+      t('请求失败')
     );
+  };
+
+  const toPositiveNumber = (value) => {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed) || parsed <= 0) return 0;
+    return parsed;
+  };
+
+  const getPromptSnippet = (record, other, failureReason) => {
+    const candidates = [];
+    if (typeof other?.prompt === 'string') {
+      candidates.push(other.prompt);
+    }
+    if (Array.isArray(other?.messages)) {
+      const textPart = other.messages.find(
+        (item) => typeof item?.content === 'string' && item.content.trim(),
+      );
+      if (textPart?.content) {
+        candidates.push(textPart.content);
+      }
+    }
+    if (record.type !== 5 && typeof record?.content === 'string') {
+      candidates.push(record.content);
+    }
+    if (failureReason && typeof failureReason === 'string') {
+      candidates.push(failureReason);
+    }
+    return candidates.find((item) => item && item.trim()) || '';
   };
 
   if (isMobile) {
@@ -152,57 +242,108 @@ const LogsTable = (logsData) => {
     return (
       <div className='h5-log-card-list'>
         {logs.map((record) => {
-          const statusMeta = getStatusMeta(record);
-          const failureReason = getFailureReason(record);
           const other = getLogOther(record.other) || {};
+          const statusMeta = getStatusMeta(record, other);
+          const failureReason = getFailureReason(record, other, statusMeta);
+          const promptTokens = toPositiveNumber(record.prompt_tokens);
+          const completionTokens = toPositiveNumber(record.completion_tokens);
+          const totalTokens = promptTokens + completionTokens;
+          const inputBarWidth =
+            totalTokens > 0
+              ? (promptTokens / totalTokens) * 100
+              : 50;
+          const outputBarWidth =
+            totalTokens > 0
+              ? 100 - inputBarWidth
+              : 50;
+          const firstTokenSeconds =
+            toPositiveNumber(other.frt) > 0
+              ? `${(toPositiveNumber(other.frt) / 1000).toFixed(2)}s`
+              : '-';
+          const promptSnippet = getPromptSnippet(record, other, failureReason);
+          const userValue = record.username || record.token_name || '-';
+          const groupValue = record.group || other.group || '-';
 
           return (
             <Card key={record.key} className='h5-log-card !rounded-2xl'>
-              <div className='h5-log-card-head'>
-                <Text>{record.timestamp2string || '-'}</Text>
-                <Tag color={statusMeta.color} size='small'>
-                  {statusMeta.text}
-                </Tag>
-              </div>
-
-              <div className='h5-log-row'>
-                <Text type='tertiary'>{t('模型')}</Text>
+              <div className='h5-log-header'>
                 <Button
                   theme='borderless'
                   size='small'
+                  className='h5-log-model-btn'
                   onClick={(event) => copyText(event, record.model_name || '-')}
                 >
-                  {record.model_name || '-'}
+                  <span className='h5-log-model-title'>{record.model_name || '-'}</span>
                 </Button>
+                <span className={`h5-log-status-chip ${statusMeta.className}`}>
+                  {statusMeta.statusCode
+                    ? `${statusMeta.text} ${statusMeta.statusCode}`
+                    : statusMeta.text}
+                </span>
+              </div>
+              <div className='h5-log-time'>{record.timestamp2string || '-'}</div>
+
+              <div className='h5-log-meta-row'>
+                <span className='h5-log-meta-pill'>
+                  <Text type='tertiary'>{t('渠道')}</Text>
+                  <strong>{record.channel || '-'}</strong>
+                </span>
+                <span className='h5-log-meta-pill'>
+                  <Text type='tertiary'>{t('用户')}</Text>
+                  <strong>{userValue}</strong>
+                </span>
+                <span className='h5-log-meta-pill'>
+                  <Text type='tertiary'>{t('分组')}</Text>
+                  <strong>{groupValue}</strong>
+                </span>
               </div>
 
-              <div className='h5-log-grid'>
-                <div>
-                  <Text type='tertiary'>{t('令牌')}</Text>
-                  <div>{record.token_name || '-'}</div>
-                </div>
-                <div>
-                  <Text type='tertiary'>{t('分组')}</Text>
-                  <div>{record.group || '-'}</div>
-                </div>
-                <div>
-                  <Text type='tertiary'>{t('输入')}</Text>
-                  <div>{record.prompt_tokens || 0}</div>
-                </div>
-                <div>
-                  <Text type='tertiary'>{t('输出')}</Text>
-                  <div>{record.completion_tokens || 0}</div>
-                </div>
-                <div>
-                  <Text type='tertiary'>{t('耗时')}</Text>
-                  <div>
-                    {record.use_time || 0}s
-                    {other.frt ? ` / ${Number(other.frt / 1000).toFixed(1)}s` : ''}
+              <div className='h5-log-token-layer'>
+                <div className='h5-log-token-stats'>
+                  <div className='h5-log-token-item'>
+                    <span>{t('Input')}</span>
+                    <strong>{promptTokens}</strong>
+                  </div>
+                  <div className='h5-log-token-item'>
+                    <span>{t('Output')}</span>
+                    <strong>{completionTokens}</strong>
                   </div>
                 </div>
-                <div>
-                  <Text type='tertiary'>{t('消耗')}</Text>
-                  <div>{renderQuota(record.quota || 0, 6)}</div>
+                <div className='h5-log-token-bar-container'>
+                  <div
+                    className='h5-log-token-bar-input'
+                    style={{ width: `${inputBarWidth}%` }}
+                  />
+                  <div
+                    className='h5-log-token-bar-output'
+                    style={{ width: `${outputBarWidth}%` }}
+                  />
+                </div>
+                <div className='h5-log-token-foot'>
+                  <span>
+                    {t('总 Tokens')}: {totalTokens}
+                  </span>
+                  <span>
+                    {t('消耗')}: {renderQuota(record.quota || 0, 6)}
+                  </span>
+                </div>
+              </div>
+
+              {promptSnippet ? (
+                <div className='h5-log-snippet' onClick={(event) => copyText(event, promptSnippet)}>
+                  <span className='h5-log-snippet-label'>{t('请求片段')}</span>
+                  <code>{promptSnippet}</code>
+                </div>
+              ) : null}
+
+              <div className='h5-log-performance'>
+                <div className='h5-log-performance-item'>
+                  <span>{t('耗时')}</span>
+                  <strong>{toPositiveNumber(record.use_time)}s</strong>
+                </div>
+                <div className='h5-log-performance-item'>
+                  <span>{t('首字用时')}</span>
+                  <strong>{firstTokenSeconds}</strong>
                 </div>
               </div>
 
