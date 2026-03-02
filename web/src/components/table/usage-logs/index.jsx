@@ -43,17 +43,22 @@ const LogsPage = () => {
       {/* Main Content */}
       <CardPro
         type='type2'
+        className={isMobile ? 'h5-usage-logs-card' : ''}
         statsArea={<LogsActions {...logsData} />}
         searchArea={<LogsFilters {...logsData} />}
-        paginationArea={createCardProPagination({
-          currentPage: logsData.activePage,
-          pageSize: logsData.pageSize,
-          total: logsData.logCount,
-          onPageChange: logsData.handlePageChange,
-          onPageSizeChange: logsData.handlePageSizeChange,
-          isMobile: isMobile,
-          t: logsData.t,
-        })}
+        paginationArea={
+          isMobile
+            ? null
+            : createCardProPagination({
+                currentPage: logsData.activePage,
+                pageSize: logsData.pageSize,
+                total: logsData.logCount,
+                onPageChange: logsData.handlePageChange,
+                onPageSizeChange: logsData.handlePageSizeChange,
+                isMobile: isMobile,
+                t: logsData.t,
+              })
+        }
         t={logsData.t}
       >
         <LogsTable {...logsData} />

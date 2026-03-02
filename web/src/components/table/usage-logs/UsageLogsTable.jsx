@@ -17,14 +17,13 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import {
   Button,
   Card,
   Descriptions,
   Empty,
   Skeleton,
-  Typography,
 } from '@douyinfe/semi-ui';
 import CardTable from '../../common/ui/CardTable';
 import {
@@ -35,13 +34,13 @@ import { getLogsColumns } from './UsageLogsColumnDefs';
 import { getLogOther, renderQuota } from '../../../helpers';
 import { useIsMobile } from '../../../hooks/common/useIsMobile';
 
-const { Text } = Typography;
-
 const LogsTable = (logsData) => {
   const {
     logs,
     expandData,
     loading,
+    loadingMore,
+    hasMoreLogs,
     activePage,
     pageSize,
     logCount,
@@ -49,6 +48,7 @@ const LogsTable = (logsData) => {
     visibleColumns,
     handlePageChange,
     handlePageSizeChange,
+    loadMoreLogs,
     copyText,
     showUserInfoFunc,
     openChannelAffinityUsageCacheModal,
@@ -58,6 +58,7 @@ const LogsTable = (logsData) => {
     COLUMN_KEYS,
   } = logsData;
   const isMobile = useIsMobile();
+  const h5LoadMoreRef = useRef(null);
 
   // Get all columns
   const allColumns = useMemo(() => {
@@ -210,6 +211,30 @@ const LogsTable = (logsData) => {
     return candidates.find((item) => item && item.trim()) || '';
   };
 
+  useEffect(() => {
+    if (!isMobile || !h5LoadMoreRef.current) {
+      return;
+    }
+    if (typeof window === 'undefined' || !window.IntersectionObserver) {
+      return;
+    }
+    const observer = new window.IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry?.isIntersecting) {
+          loadMoreLogs();
+        }
+      },
+      {
+        root: null,
+        rootMargin: '180px 0px',
+        threshold: 0.01,
+      },
+    );
+    observer.observe(h5LoadMoreRef.current);
+    return () => observer.disconnect();
+  }, [isMobile, loadMoreLogs, loading, loadingMore, hasMoreLogs, logs.length]);
+
   if (isMobile) {
     if (loading) {
       return (
@@ -261,7 +286,6 @@ const LogsTable = (logsData) => {
               ? `${(toPositiveNumber(other.frt) / 1000).toFixed(2)}s`
               : '-';
           const promptSnippet = getPromptSnippet(record, other, failureReason);
-          const userValue = record.username || record.token_name || '-';
           const groupValue = record.group || other.group || '-';
 
           return (
@@ -281,87 +305,84 @@ const LogsTable = (logsData) => {
                     : statusMeta.text}
                 </span>
               </div>
-              <div className='h5-log-time'>{record.timestamp2string || '-'}</div>
-
-              <div className='h5-log-meta-row'>
-                <span className='h5-log-meta-pill'>
-                  <Text type='tertiary'>{t('渠道')}</Text>
-                  <strong>{record.channel || '-'}</strong>
-                </span>
-                <span className='h5-log-meta-pill'>
-                  <Text type='tertiary'>{t('用户')}</Text>
-                  <strong>{userValue}</strong>
-                </span>
-                <span className='h5-log-meta-pill'>
-                  <Text type='tertiary'>{t('分组')}</Text>
-                  <strong>{groupValue}</strong>
-                </span>
+              <div className='h5-log-time-row'>
+                <div className='h5-log-time'>{record.timestamp2string || '-'}</div>
+                {!statusMeta.isFailure ? (
+                  <span className='h5-log-cost-chip'>
+                    <span className='h5-log-cost-dot' />
+                    <span>{t('消耗')}</span>
+                    <strong className='h5-log-cost-value'>
+                      {renderQuota(record.quota || 0, 6)}
+                    </strong>
+                  </span>
+                ) : (
+                  <span className='h5-log-group-pill' title={groupValue}>
+                    <span>{t('分组')}</span>
+                    <strong>{groupValue}</strong>
+                  </span>
+                )}
               </div>
 
-              <div className='h5-log-token-layer'>
-                <div className='h5-log-token-stats'>
-                  <div className='h5-log-token-item'>
-                    <span>{t('Input')}</span>
-                    <strong>{promptTokens}</strong>
+              {!statusMeta.isFailure ? (
+                <div className='h5-log-token-layer'>
+                  <div className='h5-log-token-stats'>
+                    <div className='h5-log-token-item'>
+                      <span>{t('Input')}</span>
+                      <strong>{promptTokens}</strong>
+                    </div>
+                    <div className='h5-log-token-item'>
+                      <span>{t('Output')}</span>
+                      <strong>{completionTokens}</strong>
+                    </div>
                   </div>
-                  <div className='h5-log-token-item'>
-                    <span>{t('Output')}</span>
-                    <strong>{completionTokens}</strong>
+                  <div className='h5-log-token-bar-container'>
+                    <div
+                      className='h5-log-token-bar-input'
+                      style={{ width: `${inputBarWidth}%` }}
+                    />
+                    <div
+                      className='h5-log-token-bar-output'
+                      style={{ width: `${outputBarWidth}%` }}
+                    />
+                  </div>
+                  <div className='h5-log-token-foot'>
+                    <span>
+                      {t('总 Tokens')}: {totalTokens}
+                    </span>
+                    <span className='h5-log-group-chip' title={groupValue}>
+                      <span>{t('分组')}</span>
+                      <strong>{groupValue}</strong>
+                    </span>
                   </div>
                 </div>
-                <div className='h5-log-token-bar-container'>
-                  <div
-                    className='h5-log-token-bar-input'
-                    style={{ width: `${inputBarWidth}%` }}
-                  />
-                  <div
-                    className='h5-log-token-bar-output'
-                    style={{ width: `${outputBarWidth}%` }}
-                  />
-                </div>
-                <div className='h5-log-token-foot'>
-                  <span>
-                    {t('总 Tokens')}: {totalTokens}
-                  </span>
-                  <span>
-                    {t('消耗')}: {renderQuota(record.quota || 0, 6)}
-                  </span>
-                </div>
-              </div>
+              ) : null}
 
               {promptSnippet ? (
-                <div className='h5-log-snippet' onClick={(event) => copyText(event, promptSnippet)}>
+                <div
+                  className={`h5-log-snippet ${statusMeta.isFailure ? 'h5-log-snippet--warning' : ''}`}
+                  onClick={(event) => copyText(event, promptSnippet)}
+                >
                   <span className='h5-log-snippet-label'>{t('请求片段')}</span>
                   <code>{promptSnippet}</code>
                 </div>
               ) : null}
 
-              <div className='h5-log-performance'>
-                <div className='h5-log-performance-item'>
-                  <span>{t('耗时')}</span>
-                  <strong>{toPositiveNumber(record.use_time)}s</strong>
-                </div>
-                <div className='h5-log-performance-item'>
-                  <span>{t('首字用时')}</span>
-                  <strong>{firstTokenSeconds}</strong>
-                </div>
-              </div>
-
-              {failureReason ? (
-                <div className='h5-log-error'>
-                  <div className='h5-log-error-title'>{t('失败原因')}</div>
-                  <div className='h5-log-error-content'>{failureReason}</div>
-                  <Button
-                    size='small'
-                    theme='borderless'
-                    onClick={(event) => copyText(event, failureReason)}
-                  >
-                    {t('复制错误信息')}
-                  </Button>
+              {!statusMeta.isFailure ? (
+                <div className='h5-log-performance'>
+                  <div className='h5-log-performance-item'>
+                    <span>{t('耗时')}</span>
+                    <strong>{toPositiveNumber(record.use_time)}s</strong>
+                  </div>
+                  <div className='h5-log-performance-item'>
+                    <span>{t('首字用时')}</span>
+                    <strong>{firstTokenSeconds}</strong>
+                  </div>
                 </div>
               ) : null}
 
-              {expandData[record.key] && expandData[record.key].length > 0 ? (
+              {!statusMeta.isFailure &&
+              expandData[record.key] &&
+              expandData[record.key].length > 0 ? (
                 <details className='h5-log-details'>
                   <summary>{t('查看详情')}</summary>
                   <Descriptions data={expandData[record.key]} />
@@ -370,6 +391,10 @@ const LogsTable = (logsData) => {
             </Card>
           );
         })}
+        <div ref={h5LoadMoreRef} className='h5-log-load-more-anchor' />
+        {loadingMore ? (
+          <div className='h5-log-load-more-tip'>{t('加载中...')}</div>
+        ) : null}
       </div>
     );
   }

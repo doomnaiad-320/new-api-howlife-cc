@@ -17,7 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal } from '@douyinfe/semi-ui';
 import {
@@ -66,6 +66,9 @@ export const useLogsData = () => {
   const [expandData, setExpandData] = useState({});
   const [showStat, setShowStat] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMoreLogs, setHasMoreLogs] = useState(false);
+  const loadingMoreRef = useRef(false);
   const [loadingStat, setLoadingStat] = useState(false);
   const [activePage, setActivePage] = useState(1);
   const [logCount, setLogCount] = useState(0);
@@ -326,7 +329,7 @@ export const useLogsData = () => {
   };
 
   // Format logs data
-  const setLogsFormat = (logs) => {
+  const setLogsFormat = (logs, append = false) => {
     const requestConversionDisplayValue = (conversionChain) => {
       const chain = Array.isArray(conversionChain)
         ? conversionChain.filter(Boolean)
@@ -618,13 +621,43 @@ export const useLogsData = () => {
       expandDatesLocal[logs[i].key] = expandDataLocal;
     }
 
+    if (append) {
+      setExpandData((prev) => ({
+        ...prev,
+        ...expandDatesLocal,
+      }));
+      setLogs((prev) => {
+        const existedKeys = new Set(prev.map((item) => item.key));
+        const merged = [...prev];
+        logs.forEach((item) => {
+          if (!existedKeys.has(item.key)) {
+            merged.push(item);
+            existedKeys.add(item.key);
+          }
+        });
+        return merged;
+      });
+      return;
+    }
+
     setExpandData(expandDatesLocal);
     setLogs(logs);
   };
 
   // Load logs function
-  const loadLogs = async (startIdx, pageSize, customLogType = null) => {
-    setLoading(true);
+  const loadLogs = async (
+    startIdx,
+    pageSize,
+    customLogType = null,
+    options = {},
+  ) => {
+    const { append = false } = options;
+    if (append) {
+      loadingMoreRef.current = true;
+      setLoadingMore(true);
+    } else {
+      setLoading(true);
+    }
 
     let url = '';
     const {
@@ -654,19 +687,27 @@ export const useLogsData = () => {
       url = `/api/log/self/?p=${startIdx}&page_size=${pageSize}&type=${currentLogType}&token_name=${token_name}&model_name=${model_name}&start_timestamp=${localStartTimestamp}&end_timestamp=${localEndTimestamp}&group=${group}&request_id=${request_id}`;
     }
     url = encodeURI(url);
-    const res = await API.get(url);
-    const { success, message, data } = res.data;
-    if (success) {
-      const newPageData = data.items;
-      setActivePage(data.page);
-      setPageSize(data.page_size);
-      setLogCount(data.total);
-
-      setLogsFormat(newPageData);
-    } else {
-      showError(message);
+    try {
+      const res = await API.get(url);
+      const { success, message, data } = res.data;
+      if (success) {
+        const newPageData = data.items;
+        setActivePage(data.page);
+        setPageSize(data.page_size);
+        setLogCount(data.total);
+        setHasMoreLogs(data.page * data.page_size < data.total);
+        setLogsFormat(newPageData, append);
+      } else {
+        showError(message);
+      }
+    } finally {
+      if (append) {
+        loadingMoreRef.current = false;
+        setLoadingMore(false);
+      } else {
+        setLoading(false);
+      }
     }
-    setLoading(false);
   };
 
   // Page handlers
@@ -684,6 +725,14 @@ export const useLogsData = () => {
       .catch((reason) => {
         showError(reason);
       });
+  };
+
+  const loadMoreLogs = async () => {
+    if (loading || loadingMoreRef.current || !hasMoreLogs) {
+      return;
+    }
+    const nextPage = activePage + 1;
+    await loadLogs(nextPage, pageSize, null, { append: true });
   };
 
   // Refresh function
@@ -735,6 +784,8 @@ export const useLogsData = () => {
     expandData,
     showStat,
     loading,
+    loadingMore,
+    hasMoreLogs,
     loadingStat,
     activePage,
     logCount,
@@ -776,6 +827,7 @@ export const useLogsData = () => {
 
     // Functions
     loadLogs,
+    loadMoreLogs,
     handlePageChange,
     handlePageSizeChange,
     refresh,
