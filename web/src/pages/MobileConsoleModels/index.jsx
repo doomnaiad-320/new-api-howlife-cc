@@ -19,17 +19,15 @@ For commercial licensing, please contact support@quantumnous.com
 
 import React, { useEffect, useMemo } from 'react';
 import {
-  Button,
   Card,
   Empty,
   Pagination,
   Select,
   Skeleton,
   Space,
-  Tag,
   Typography,
 } from '@douyinfe/semi-ui';
-import { Copy, Search } from 'lucide-react';
+import { Bot, Braces, Cpu, Search, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { calculateModelPrice } from '../../helpers';
 import { useModelPricingData } from '../../hooks/model-pricing/useModelPricingData';
@@ -41,6 +39,33 @@ const QUOTA_TYPE_OPTIONS = [
   { label: '按量计费', value: 0 },
   { label: '按次计费', value: 1 },
 ];
+
+const getModelVisualMeta = (model) => {
+  const modelName = String(model?.model_name || '').toLowerCase();
+  const vendorName = String(model?.vendor_name || '').toLowerCase();
+
+  let iconType = 'generic';
+  if (modelName.includes('gpt') || vendorName.includes('openai')) {
+    iconType = 'openai';
+  } else if (modelName.includes('claude') || vendorName.includes('anthropic')) {
+    iconType = 'anthropic';
+  } else if (modelName.includes('deepseek') || vendorName.includes('deepseek')) {
+    iconType = 'deepseek';
+  } else if (modelName.includes('gemini') || vendorName.includes('google')) {
+    iconType = 'gemini';
+  }
+
+  const iconMap = {
+    openai: Sparkles,
+    anthropic: Bot,
+    deepseek: Braces,
+    gemini: Cpu,
+    generic: Sparkles,
+  };
+
+  const Icon = iconMap[iconType] || Sparkles;
+  return { Icon, iconType };
+};
 
 const MobileConsoleModels = () => {
   const { t } = useTranslation();
@@ -95,10 +120,20 @@ const MobileConsoleModels = () => {
   );
 
   return (
-    <div className='h5-console-page mt-[60px] px-2 pb-3'>
-      <Space vertical spacing={12} style={{ width: '100%' }}>
-        <Card className='!rounded-2xl'>
-          <Space vertical spacing={8} style={{ width: '100%' }}>
+    <div className='h5-console-page h5-models-page mt-[60px] pb-3'>
+      <Space
+        vertical
+        spacing={12}
+        style={{ width: '100%' }}
+        className='h5-model-page-stack'
+      >
+        <Card className='h5-model-panel-card !rounded-2xl'>
+          <Space
+            vertical
+            spacing={8}
+            style={{ width: '100%' }}
+            className='h5-model-filter-stack'
+          >
             <div className='h5-model-search'>
               <Search size={14} className='h5-model-search-icon' />
               <input
@@ -148,11 +183,11 @@ const MobileConsoleModels = () => {
         </Card>
 
         {modelData.loading ? (
-          <Card className='!rounded-2xl'>
+          <Card className='h5-model-panel-card !rounded-2xl'>
             <Skeleton placeholder={<Skeleton.Paragraph rows={4} />} loading />
           </Card>
         ) : paginatedModels.length === 0 ? (
-          <Card className='!rounded-2xl'>
+          <Card className='h5-model-panel-card !rounded-2xl'>
             <Empty image={null} description={t('暂无模型')} />
           </Card>
         ) : (
@@ -166,50 +201,66 @@ const MobileConsoleModels = () => {
                 displayPrice: modelData.displayPrice,
                 currency: modelData.currency,
               });
+              const visualMeta = getModelVisualMeta(model);
 
               return (
                 <Card key={model.key || model.model_name} className='h5-model-card !rounded-2xl'>
-                  <div className='h5-model-card-top'>
-                    <div>
-                      <Text strong>{model.model_name}</Text>
-                      <div className='h5-model-sub'>
-                        {model.vendor_name || t('未知供应商')}
+                  <div className='h5-model-tech-top'>
+                    <div className='h5-model-tech-main'>
+                      <div
+                        className={`h5-model-tech-icon h5-model-tech-icon--${visualMeta.iconType}`}
+                      >
+                        <visualMeta.Icon size={18} strokeWidth={2.2} />
+                      </div>
+                      <div className='h5-model-tech-heading'>
+                        <Text strong className='h5-model-tech-title'>
+                          {model.model_name}
+                        </Text>
+                        <div className='h5-model-tech-vendor'>
+                          {(model.vendor_name || t('未知供应商')).toUpperCase()}
+                        </div>
                       </div>
                     </div>
-                    <Button
-                      theme='borderless'
-                      icon={<Copy size={14} />}
+                  </div>
+
+                  <div className='h5-model-tech-divider' />
+
+                  <div className='h5-model-tech-description'>
+                    <span>{t('模型描述')}</span>
+                    <p>{model.description || t('暂无描述')}</p>
+                  </div>
+
+                  <div className='h5-model-tech-divider' />
+
+                  <div className='h5-model-tech-bottom'>
+                    <div
+                      className={`h5-model-tech-price ${priceData.isPerToken ? 'is-per-token' : 'is-per-call'}`}
+                    >
+                      {priceData.isPerToken ? (
+                        <>
+                          <span className='h5-model-tech-price-item'>
+                            {t('输入')}: <strong>{priceData.inputPrice}</strong> / 1
+                            {priceData.unitLabel}
+                          </span>
+                          <span className='h5-model-tech-price-sep'>|</span>
+                          <span className='h5-model-tech-price-item'>
+                            {t('输出')}: <strong>{priceData.completionPrice}</strong> / 1
+                            {priceData.unitLabel}
+                          </span>
+                        </>
+                      ) : (
+                        <span className='h5-model-tech-price-item'>
+                          {t('价格')}: <strong>{priceData.price}</strong>/{t('每次请求')}
+                        </span>
+                      )}
+                    </div>
+                    <button
+                      type='button'
+                      className='h5-model-tech-detail-btn'
                       onClick={() => modelData.copyText(model.model_name)}
-                    />
-                  </div>
-
-                  <div className='h5-model-tags'>
-                    <Tag color='white' size='small'>
-                      {model.quota_type === 1 ? t('按次计费') : t('按量计费')}
-                    </Tag>
-                    <Tag color='white' size='small'>
-                      {t('分组')}: {priceData.usedGroup || '-'}
-                    </Tag>
-                    <Tag color={model.enable_groups?.length ? 'green' : 'red'} size='small'>
-                      {model.enable_groups?.length ? t('可用') : t('不可用')}
-                    </Tag>
-                  </div>
-
-                  <div className='h5-model-price'>
-                    {priceData.isPerToken ? (
-                      <>
-                        <div>
-                          {t('输入')}: {priceData.inputPrice} / {priceData.unitLabel}
-                        </div>
-                        <div>
-                          {t('输出')}: {priceData.completionPrice} / {priceData.unitLabel}
-                        </div>
-                      </>
-                    ) : (
-                      <div>
-                        {t('模型价格')}: {priceData.price}
-                      </div>
-                    )}
+                    >
+                      {t('详情')}
+                    </button>
                   </div>
                 </Card>
               );
@@ -217,7 +268,7 @@ const MobileConsoleModels = () => {
           </div>
         )}
 
-        <Card className='!rounded-2xl'>
+        <Card className='h5-model-panel-card !rounded-2xl'>
           <Pagination
             currentPage={modelData.currentPage}
             pageSize={modelData.pageSize}
