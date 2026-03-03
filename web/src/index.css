@@ -1341,14 +1341,40 @@ html.dark .h5-home-stat-item {
   min-width: 0;
 }
 
+.h5-model-tech-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
 .h5-model-tech-title {
   display: block;
+  min-width: 0;
+  flex: 1;
   margin: 0 !important;
   font-size: 17px;
   line-height: 1.2;
   color: #0f172a;
   letter-spacing: -0.02em;
   word-break: break-all;
+}
+
+.h5-model-id-copy-btn {
+  width: 20px;
+  height: 20px;
+  border: 1px solid rgba(148, 163, 184, 0.32);
+  border-radius: 999px;
+  background: rgba(248, 250, 252, 0.84);
+  color: #475569;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.h5-model-id-copy-btn:active {
+  opacity: 0.7;
 }
 
 .h5-model-tech-vendor {
@@ -1530,6 +1556,222 @@ html.dark .h5-home-stat-item {
 
 .h5-model-tech-detail-btn:active {
   opacity: 0.75;
+}
+
+.h5-model-detail-sheet .semi-sidesheet-inner {
+  border-radius: 18px 18px 0 0;
+}
+
+.h5-model-detail-sheet .semi-sidesheet-content {
+  background: #f3f5f8;
+}
+
+.h5-model-detail-sheet-body {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(circle at 15% -10%, rgba(59, 130, 246, 0.15), transparent 48%),
+    radial-gradient(circle at 85% -15%, rgba(148, 163, 184, 0.22), transparent 52%),
+    #f3f5f8;
+}
+
+.h5-model-detail-sheet-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #334155;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.h5-model-detail-sheet-close-btn:active {
+  opacity: 0.72;
+}
+
+.h5-model-detail-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.h5-model-detail-page-title {
+  margin-top: 2px;
+  padding: 0 2px;
+  font-size: 20px;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  font-weight: 600;
+  color: #0a0a0a;
+  word-break: break-all;
+}
+
+.h5-model-detail-block {
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 16px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.h5-model-detail-block-title {
+  display: block;
+  font-size: 16px;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.h5-model-detail-endpoint-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.h5-model-detail-endpoint-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px dashed rgba(148, 163, 184, 0.36);
+}
+
+.h5-model-detail-endpoint-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.h5-model-detail-endpoint-inline {
+  min-width: 0;
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.h5-model-detail-endpoint-provider {
+  font-size: 14px;
+  line-height: 1.2;
+  font-weight: 600;
+  color: #334155;
+}
+
+.h5-model-detail-endpoint-path-inline {
+  min-width: 0;
+  flex: 1;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #64748b;
+  word-break: break-all;
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    'Liberation Mono',
+    'Courier New',
+    monospace;
+}
+
+.h5-model-detail-endpoint-method {
+  flex-shrink: 0;
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 700;
+  color: #475569;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.h5-model-detail-matrix {
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 14px;
+  background: #f7f9fc;
+}
+
+.h5-model-detail-matrix-head,
+.h5-model-detail-matrix-row {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr 1fr;
+  gap: 8px;
+  align-items: center;
+}
+
+.h5-model-detail-matrix-head.is-per-call,
+.h5-model-detail-matrix-row.is-per-call {
+  grid-template-columns: 1.3fr 1fr;
+}
+
+.h5-model-detail-matrix-head {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.h5-model-detail-matrix-row {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.h5-model-detail-matrix-row:last-child {
+  border-bottom: none;
+}
+
+.h5-model-detail-matrix-group-cell {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.h5-model-detail-matrix-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #94a3b8;
+  flex-shrink: 0;
+}
+
+.h5-model-detail-matrix-group {
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  word-break: break-word;
+}
+
+.h5-model-detail-matrix-ratio {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.h5-model-detail-matrix-price {
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.h5-model-detail-empty,
+.h5-model-detail-endpoint-empty {
+  font-size: 12px;
+  color: #64748b;
 }
 
 .h5-log-card-list {
@@ -1974,6 +2216,12 @@ html.dark .h5-model-tech-vendor {
   color: rgba(148, 163, 184, 0.9);
 }
 
+html.dark .h5-model-id-copy-btn {
+  border-color: rgba(99, 102, 241, 0.35);
+  background: rgba(37, 46, 98, 0.78);
+  color: rgba(191, 219, 254, 0.92);
+}
+
 html.dark .h5-model-tech-divider {
   border-top-color: rgba(99, 102, 241, 0.2);
 }
@@ -2042,6 +2290,91 @@ html.dark .h5-model-tech-price-sep {
 
 html.dark .h5-model-tech-detail-btn {
   color: #4f7cff;
+}
+
+html.dark .h5-model-detail-sheet .semi-sidesheet-inner {
+  background: rgba(15, 23, 42, 0.98);
+}
+
+html.dark .h5-model-detail-sheet .semi-sidesheet-content {
+  background: rgba(15, 23, 42, 0.98);
+}
+
+html.dark .h5-model-detail-sheet-body {
+  background:
+    radial-gradient(circle at 15% -10%, rgba(59, 130, 246, 0.22), transparent 50%),
+    radial-gradient(circle at 85% -15%, rgba(99, 102, 241, 0.2), transparent 54%),
+    rgba(15, 23, 42, 0.98);
+}
+
+html.dark .h5-model-detail-sheet-close-btn {
+  border-color: rgba(99, 102, 241, 0.28);
+  background: rgba(30, 41, 59, 0.84);
+  color: rgba(191, 219, 254, 0.94);
+}
+
+html.dark .h5-model-detail-block {
+  border-color: rgba(99, 102, 241, 0.24);
+  background: rgba(20, 28, 62, 0.74);
+}
+
+html.dark .h5-model-detail-page-title {
+  color: rgba(248, 250, 252, 0.98);
+}
+
+html.dark .h5-model-detail-block-title {
+  color: rgba(248, 250, 252, 0.96);
+}
+
+html.dark .h5-model-detail-matrix {
+  border-color: rgba(99, 102, 241, 0.26);
+  background: rgba(30, 41, 59, 0.66);
+}
+
+html.dark .h5-model-detail-endpoint-row {
+  border-bottom-color: rgba(99, 102, 241, 0.36);
+}
+
+html.dark .h5-model-detail-endpoint-provider {
+  color: rgba(226, 232, 240, 0.94);
+}
+
+html.dark .h5-model-detail-endpoint-path-inline {
+  color: rgba(203, 213, 225, 0.92);
+}
+
+html.dark .h5-model-detail-endpoint-method {
+  color: rgba(191, 219, 254, 0.94);
+}
+
+html.dark .h5-model-detail-matrix-head {
+  border-bottom-color: rgba(99, 102, 241, 0.24);
+  color: rgba(148, 163, 184, 0.9);
+}
+
+html.dark .h5-model-detail-matrix-row {
+  border-bottom-color: rgba(99, 102, 241, 0.22);
+}
+
+html.dark .h5-model-detail-matrix-dot {
+  background: rgba(148, 163, 184, 0.8);
+}
+
+html.dark .h5-model-detail-matrix-group {
+  color: rgba(226, 232, 240, 0.94);
+}
+
+html.dark .h5-model-detail-matrix-ratio {
+  color: rgba(148, 163, 184, 0.9);
+}
+
+html.dark .h5-model-detail-matrix-price {
+  color: rgba(191, 219, 254, 0.95);
+}
+
+html.dark .h5-model-detail-empty,
+html.dark .h5-model-detail-endpoint-empty {
+  color: rgba(148, 163, 184, 0.92);
 }
 
 html.dark .h5-log-card-list::before {

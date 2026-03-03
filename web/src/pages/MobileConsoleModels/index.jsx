@@ -23,11 +23,12 @@ import {
   Empty,
   Pagination,
   Select,
+  SideSheet,
   Skeleton,
   Space,
   Typography,
 } from '@douyinfe/semi-ui';
-import { Bot, Braces, Cpu, Search, Sparkles } from 'lucide-react';
+import { Bot, Braces, Copy, Cpu, Search, Sparkles, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { calculateModelPrice } from '../../helpers';
 import { useModelPricingData } from '../../hooks/model-pricing/useModelPricingData';
@@ -118,7 +119,60 @@ const MobileConsoleModels = () => {
     startIndex,
     startIndex + modelData.pageSize,
   );
+  const selectedEndpoints = useMemo(() => {
+    if (!modelData.selectedModel) return [];
+    const mapping = modelData.endpointMap || {};
+    const modelName =
+      modelData.selectedModel.model_name || modelData.selectedModel.modelName || '';
+    const types = Array.isArray(modelData.selectedModel.supported_endpoint_types)
+      ? modelData.selectedModel.supported_endpoint_types
+      : [];
+    return types.map((type) => {
+      const info = mapping[type] || {};
+      let path = info.path || '';
+      if (path.includes('{model}')) {
+        path = path.replaceAll('{model}', modelName);
+      }
+      return {
+        type,
+        path,
+        endpointName: String(type || 'api'),
+        method: String(info.method || 'POST').toUpperCase(),
+      };
+    });
+  }, [modelData.selectedModel, modelData.endpointMap]);
+  const selectedGroupPriceRows = useMemo(() => {
+    if (!modelData.selectedModel) return [];
+    const enableGroups = Array.isArray(modelData.selectedModel.enable_groups)
+      ? modelData.selectedModel.enable_groups
+      : [];
+    const availableGroups = Object.keys(modelData.usableGroup || {})
+      .filter((group) => group !== '' && group !== 'auto')
+      .filter((group) => enableGroups.includes(group));
 
+    return availableGroups.map((group) => {
+      const priceData = calculateModelPrice({
+        record: modelData.selectedModel,
+        selectedGroup: group,
+        groupRatio: modelData.groupRatio,
+        tokenUnit: modelData.tokenUnit,
+        displayPrice: modelData.displayPrice,
+        currency: modelData.currency,
+      });
+      return {
+        group,
+        ratio: modelData.groupRatio?.[group] ?? 1,
+        ...priceData,
+      };
+    });
+  }, [
+    modelData.selectedModel,
+    modelData.usableGroup,
+    modelData.groupRatio,
+    modelData.tokenUnit,
+    modelData.displayPrice,
+    modelData.currency,
+  ]);
   return (
     <div className='h5-console-page h5-models-page mt-[60px] pb-3'>
       <Space
@@ -213,9 +267,23 @@ const MobileConsoleModels = () => {
                         <visualMeta.Icon size={18} strokeWidth={2.2} />
                       </div>
                       <div className='h5-model-tech-heading'>
-                        <Text strong className='h5-model-tech-title'>
-                          {model.model_name}
-                        </Text>
+                        <div className='h5-model-tech-title-row'>
+                          <Text strong className='h5-model-tech-title'>
+                            {model.model_name}
+                          </Text>
+                          <button
+                            type='button'
+                            className='h5-model-id-copy-btn'
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              modelData.copyText(model.model_name);
+                            }}
+                            aria-label={t('复制模型名称')}
+                            title={t('复制模型名称')}
+                          >
+                            <Copy size={12} />
+                          </button>
+                        </div>
                         <div className='h5-model-tech-vendor'>
                           {(model.vendor_name || t('未知供应商')).toUpperCase()}
                         </div>
@@ -257,7 +325,7 @@ const MobileConsoleModels = () => {
                     <button
                       type='button'
                       className='h5-model-tech-detail-btn'
-                      onClick={() => modelData.copyText(model.model_name)}
+                      onClick={() => modelData.openModelDetail(model)}
                     >
                       {t('详情')}
                     </button>
@@ -278,6 +346,109 @@ const MobileConsoleModels = () => {
           />
         </Card>
       </Space>
+
+      <SideSheet
+        visible={modelData.showModelDetail}
+        onCancel={modelData.closeModelDetail}
+        placement='bottom'
+        height='86vh'
+        closable={false}
+        closeOnEsc
+        title={null}
+        className='h5-model-detail-sheet'
+        bodyStyle={{ padding: 0 }}
+      >
+        {modelData.selectedModel ? (
+          <div className='h5-model-detail-sheet-body'>
+            <button
+              type='button'
+              className='h5-model-detail-sheet-close-btn'
+              onClick={modelData.closeModelDetail}
+              aria-label={t('关闭')}
+              title={t('关闭')}
+            >
+              <X size={16} />
+            </button>
+            <div className='h5-model-detail-modal-body'>
+              <div className='h5-model-detail-page-title'>
+                {modelData.selectedModel.model_name || '-'}
+              </div>
+
+              <div className='h5-model-detail-block'>
+                <div className='h5-model-detail-block-title'>{t('API 信息')}</div>
+                {selectedEndpoints.length > 0 ? (
+                  <div className='h5-model-detail-endpoint-list'>
+                    {selectedEndpoints.map((endpoint) => (
+                      <div key={`${endpoint.type}-${endpoint.path}`} className='h5-model-detail-endpoint-row'>
+                        <span className='h5-model-detail-endpoint-inline'>
+                          <span className='h5-model-detail-endpoint-provider'>
+                            {endpoint.endpointName}：
+                          </span>
+                          <span className='h5-model-detail-endpoint-path-inline'>
+                            {endpoint.path || '-'}
+                          </span>
+                        </span>
+                        <span className='h5-model-detail-endpoint-method'>
+                          {endpoint.method}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className='h5-model-detail-empty'>{t('暂无可用端点')}</div>
+                )}
+              </div>
+
+              <div className='h5-model-detail-block'>
+                <div className='h5-model-detail-block-title'>{t('分组价格')}</div>
+                {selectedGroupPriceRows.length > 0 ? (
+                  <div className='h5-model-detail-matrix'>
+                    <div
+                      className={`h5-model-detail-matrix-head ${selectedGroupPriceRows[0].isPerToken ? '' : 'is-per-call'}`}
+                    >
+                      <span>{t('分组')}</span>
+                      {selectedGroupPriceRows[0].isPerToken ? (
+                        <>
+                          <span>
+                            {t('输入')} / 1{selectedGroupPriceRows[0].unitLabel}
+                          </span>
+                          <span>
+                            {t('输出')} / 1{selectedGroupPriceRows[0].unitLabel}
+                          </span>
+                        </>
+                      ) : (
+                        <span>{t('价格 / 每次请求')}</span>
+                      )}
+                    </div>
+                    {selectedGroupPriceRows.map((row) => (
+                      <div
+                        key={row.group}
+                        className={`h5-model-detail-matrix-row ${row.isPerToken ? '' : 'is-per-call'}`}
+                      >
+                        <div className='h5-model-detail-matrix-group-cell'>
+                          <span className='h5-model-detail-matrix-dot' />
+                          <span className='h5-model-detail-matrix-group'>{row.group}</span>
+                          <span className='h5-model-detail-matrix-ratio'>{row.ratio}x</span>
+                        </div>
+                        {row.isPerToken ? (
+                          <>
+                            <span className='h5-model-detail-matrix-price'>{row.inputPrice}</span>
+                            <span className='h5-model-detail-matrix-price'>{row.completionPrice}</span>
+                          </>
+                        ) : (
+                          <span className='h5-model-detail-matrix-price'>{row.price}</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className='h5-model-detail-empty'>{t('当前模型无可展示的分组价格')}</div>
+                )}
+              </div>
+            </div>
+          </div>
+        ) : null}
+      </SideSheet>
     </div>
   );
 };
