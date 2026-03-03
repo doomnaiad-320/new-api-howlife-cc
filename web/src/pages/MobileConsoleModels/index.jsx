@@ -523,57 +523,53 @@ const MobileConsoleModels = () => {
                 )}
               </div>
 
-              <div className='h5-model-detail-block'>
-                <div className='h5-model-detail-block-title'>{t('Token 计算器')}</div>
-                <div className='h5-model-token-calc-grid'>
-                  <label className='h5-model-token-calc-field'>
-                    <span>{t('输入 Token')}</span>
-                    <input
-                      value={inputTokens}
-                      onChange={handleTokenInput(setInputTokens)}
-                      inputMode='numeric'
-                      placeholder={t('例如 1000')}
-                    />
-                  </label>
-                  <label className='h5-model-token-calc-field'>
-                    <span>{t('输出 Token')}</span>
-                    <input
-                      value={outputTokens}
-                      onChange={handleTokenInput(setOutputTokens)}
-                      inputMode='numeric'
-                      placeholder={t('例如 500')}
-                    />
-                  </label>
-                </div>
-                <button
-                  type='button'
-                  className='h5-model-token-calc-btn'
-                  onClick={handleCalculateTokenCost}
-                >
-                  {t('计算')}
-                </button>
+              {tokenCalculatorBase?.isPerToken && (
+                <div className='h5-model-detail-block'>
+                  <div className='h5-model-detail-block-title'>{t('Token 计算器')}</div>
+                  <div className='h5-model-token-calc-grid'>
+                    <label className='h5-model-token-calc-field'>
+                      <span>{t('输入 Token')}</span>
+                      <input
+                        value={inputTokens}
+                        onChange={handleTokenInput(setInputTokens)}
+                        inputMode='numeric'
+                        placeholder={t('例如 1000')}
+                      />
+                    </label>
+                    <label className='h5-model-token-calc-field'>
+                      <span>{t('输出 Token')}</span>
+                      <input
+                        value={outputTokens}
+                        onChange={handleTokenInput(setOutputTokens)}
+                        inputMode='numeric'
+                        placeholder={t('例如 500')}
+                      />
+                    </label>
+                  </div>
+                  <button
+                    type='button'
+                    className='h5-model-token-calc-btn'
+                    onClick={handleCalculateTokenCost}
+                  >
+                    {t('计算')}
+                  </button>
 
-                {tokenCalcResult && (
-                  <div className='h5-model-token-calc-result'>
-                    <div className='h5-model-token-calc-result-main'>
-                      {t('预计花费')}：<strong>{tokenCalcResult.totalDisplay}</strong>
-                    </div>
-                    <div className='h5-model-token-calc-result-meta'>
-                      {t('计费分组')}：{tokenCalcResult.usedGroup}
-                    </div>
-                    {tokenCalcResult.isPerToken ? (
+                  {tokenCalcResult && (
+                    <div className='h5-model-token-calc-result'>
+                      <div className='h5-model-token-calc-result-main'>
+                        {t('预计花费')}：<strong>{tokenCalcResult.totalDisplay}</strong>
+                      </div>
+                      <div className='h5-model-token-calc-result-meta'>
+                        {t('计费分组')}：{tokenCalcResult.usedGroup}
+                      </div>
                       <div className='h5-model-token-calc-result-meta'>
                         {t('单价')}：{t('输入')} {tokenCalcResult.inputUnitDisplay}/1M，{t('输出')}{' '}
                         {tokenCalcResult.outputUnitDisplay}/1M
                       </div>
-                    ) : (
-                      <div className='h5-model-token-calc-result-meta'>
-                        {t('按次计费模型，Token 数量不影响单次请求价格')}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         ) : null}
