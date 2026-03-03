@@ -17,7 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Card,
   Empty,
@@ -71,6 +71,9 @@ const getModelVisualMeta = (model) => {
 const MobileConsoleModels = () => {
   const { t } = useTranslation();
   const modelData = useModelPricingData();
+  const [inputTokens, setInputTokens] = useState('');
+  const [outputTokens, setOutputTokens] = useState('');
+  const [tokenCalcResult, setTokenCalcResult] = useState(null);
 
   useEffect(() => {
     modelData.setFilterEndpointType('all');
@@ -173,6 +176,80 @@ const MobileConsoleModels = () => {
     modelData.displayPrice,
     modelData.currency,
   ]);
+
+  useEffect(() => {
+    setInputTokens('');
+    setOutputTokens('');
+    setTokenCalcResult(null);
+  }, [modelData.selectedModel?.model_name, modelData.showModelDetail]);
+
+  const tokenCalculatorBase = useMemo(() => {
+    if (!modelData.selectedModel) return null;
+    const basePrice = calculateModelPrice({
+      record: modelData.selectedModel,
+      selectedGroup: modelData.selectedGroup,
+      groupRatio: modelData.groupRatio,
+      tokenUnit: modelData.tokenUnit,
+      displayPrice: modelData.displayPrice,
+      currency: modelData.currency,
+    });
+    return {
+      isPerToken: basePrice.isPerToken,
+      usedGroup: basePrice.usedGroup || '-',
+      usedGroupRatio: basePrice.usedGroupRatio ?? 1,
+    };
+  }, [
+    modelData.selectedModel,
+    modelData.selectedGroup,
+    modelData.groupRatio,
+    modelData.tokenUnit,
+    modelData.displayPrice,
+    modelData.currency,
+  ]);
+
+  const handleTokenInput = (setter) => (event) => {
+    const numeric = String(event.target.value || '').replace(/[^\d]/g, '');
+    setter(numeric);
+  };
+
+  const handleCalculateTokenCost = () => {
+    if (!modelData.selectedModel || !tokenCalculatorBase) return;
+    const inputValue = Number(inputTokens || 0);
+    const outputValue = Number(outputTokens || 0);
+    const ratio = Number(tokenCalculatorBase.usedGroupRatio || 1);
+
+    if (tokenCalculatorBase.isPerToken) {
+      const modelRatio = Number(modelData.selectedModel.model_ratio || 0);
+      const completionRatio = Number(modelData.selectedModel.completion_ratio || 0);
+      const inputUnitPriceUSD = modelRatio * 2 * ratio;
+      const outputUnitPriceUSD = modelRatio * completionRatio * 2 * ratio;
+      const totalUSD =
+        (inputValue / 1000000) * inputUnitPriceUSD +
+        (outputValue / 1000000) * outputUnitPriceUSD;
+
+      setTokenCalcResult({
+        isPerToken: true,
+        inputValue,
+        outputValue,
+        totalDisplay: modelData.displayPrice(totalUSD),
+        inputUnitDisplay: modelData.displayPrice(inputUnitPriceUSD),
+        outputUnitDisplay: modelData.displayPrice(outputUnitPriceUSD),
+        usedGroup: tokenCalculatorBase.usedGroup,
+      });
+      return;
+    }
+
+    const perRequestUSD =
+      Number(modelData.selectedModel.model_price || 0) * ratio;
+    setTokenCalcResult({
+      isPerToken: false,
+      inputValue,
+      outputValue,
+      totalDisplay: modelData.displayPrice(perRequestUSD),
+      usedGroup: tokenCalculatorBase.usedGroup,
+    });
+  };
+
   return (
     <div className='h5-console-page h5-models-page mt-[60px] pb-3'>
       <Space
@@ -443,6 +520,58 @@ const MobileConsoleModels = () => {
                   </div>
                 ) : (
                   <div className='h5-model-detail-empty'>{t('当前模型无可展示的分组价格')}</div>
+                )}
+              </div>
+
+              <div className='h5-model-detail-block'>
+                <div className='h5-model-detail-block-title'>{t('Token 计算器')}</div>
+                <div className='h5-model-token-calc-grid'>
+                  <label className='h5-model-token-calc-field'>
+                    <span>{t('输入 Token')}</span>
+                    <input
+                      value={inputTokens}
+                      onChange={handleTokenInput(setInputTokens)}
+                      inputMode='numeric'
+                      placeholder={t('例如 1000')}
+                    />
+                  </label>
+                  <label className='h5-model-token-calc-field'>
+                    <span>{t('输出 Token')}</span>
+                    <input
+                      value={outputTokens}
+                      onChange={handleTokenInput(setOutputTokens)}
+                      inputMode='numeric'
+                      placeholder={t('例如 500')}
+                    />
+                  </label>
+                </div>
+                <button
+                  type='button'
+                  className='h5-model-token-calc-btn'
+                  onClick={handleCalculateTokenCost}
+                >
+                  {t('计算')}
+                </button>
+
+                {tokenCalcResult && (
+                  <div className='h5-model-token-calc-result'>
+                    <div className='h5-model-token-calc-result-main'>
+                      {t('预计花费')}：<strong>{tokenCalcResult.totalDisplay}</strong>
+                    </div>
+                    <div className='h5-model-token-calc-result-meta'>
+                      {t('计费分组')}：{tokenCalcResult.usedGroup}
+                    </div>
+                    {tokenCalcResult.isPerToken ? (
+                      <div className='h5-model-token-calc-result-meta'>
+                        {t('单价')}：{t('输入')} {tokenCalcResult.inputUnitDisplay}/1M，{t('输出')}{' '}
+                        {tokenCalcResult.outputUnitDisplay}/1M
+                      </div>
+                    ) : (
+                      <div className='h5-model-token-calc-result-meta'>
+                        {t('按次计费模型，Token 数量不影响单次请求价格')}
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
