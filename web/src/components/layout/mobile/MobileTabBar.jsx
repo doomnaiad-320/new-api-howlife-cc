@@ -20,7 +20,7 @@ For commercial licensing, please contact support@quantumnous.com
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Bell, CircleUserRound, House, ScrollText, Sparkles } from 'lucide-react';
+import { CircleUserRound, House, KeyRound, ScrollText, Sparkles } from 'lucide-react';
 
 const TAB_ITEMS = [
   {
@@ -39,9 +39,9 @@ const TAB_ITEMS = [
     icon: Sparkles,
   },
   {
-    key: '/console/messages',
-    label: '信息',
-    icon: Bell,
+    key: '/console/token',
+    label: '密钥',
+    icon: KeyRound,
   },
   {
     key: '/console/personal',

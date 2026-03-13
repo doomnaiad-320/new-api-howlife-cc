@@ -54,7 +54,7 @@ const PageLayout = () => {
     '/console/home',
     '/console/log',
     '/console/models-mobile',
-    '/console/messages',
+    '/console/token',
     '/console/personal',
     '/console/topup',
   ];
