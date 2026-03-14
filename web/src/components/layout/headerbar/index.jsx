@@ -70,6 +70,7 @@ const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
     '/console/home': '首页',
     '/console/log': '日志',
     '/console/models-mobile': '模型列表',
+    '/console/messages': '信息',
     '/console/token': '密钥',
     '/console/personal': '我的',
   };

@@ -61,6 +61,7 @@ const MobileConsoleHome = lazy(() => import('./pages/MobileConsoleHome'));
 const MobileConsoleMessages = lazy(() => import('./pages/MobileConsoleMessages'));
 const MobileConsoleModels = lazy(() => import('./pages/MobileConsoleModels'));
 const MobileConsoleTopup = lazy(() => import('./pages/MobileConsoleTopup'));
+const MobileConsoleToken = lazy(() => import('./pages/MobileConsoleToken'));
 
 function App() {
   const location = useLocation();
@@ -146,7 +147,9 @@ function App() {
           path='/console/token'
           element={
             <PrivateRoute>
-              <Token />
+              <Suspense fallback={<Loading></Loading>} key={location.pathname}>
+                {isMobile && !isAdminUser ? <MobileConsoleToken /> : <Token />}
+              </Suspense>
             </PrivateRoute>
           }
         />
