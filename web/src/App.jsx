@@ -63,6 +63,9 @@ const MobileConsoleModels = lazy(() => import('./pages/MobileConsoleModels'));
 const MobileConsoleTopup = lazy(() => import('./pages/MobileConsoleTopup'));
 const MobileConsoleToken = lazy(() => import('./pages/MobileConsoleToken'));
 const MobileConsolePersonal = lazy(() => import('./pages/MobileConsolePersonal'));
+const MobileConsolePlayground = lazy(() =>
+  import('./pages/MobileConsolePlayground'),
+);
 
 function App() {
   const location = useLocation();
@@ -159,6 +162,20 @@ function App() {
           element={
             <PrivateRoute>
               <Playground />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path='/console/playground-mobile'
+          element={
+            <PrivateRoute>
+              <Suspense fallback={<Loading></Loading>} key={location.pathname}>
+                {isMobile && !isAdminUser ? (
+                  <MobileConsolePlayground />
+                ) : (
+                  <Navigate to='/console/playground' replace />
+                )}
+              </Suspense>
             </PrivateRoute>
           }
         />

@@ -893,6 +893,11 @@ html.dark .with-pastel-balls::before {
 }
 
 /* ==================== 用户端 H5 布局 ==================== */
+:root {
+  /* Keep chat input above the fixed H5 tabbar. */
+  --h5-console-tabbar-offset: calc(8px + env(safe-area-inset-bottom) + 72px);
+}
+
 .mobile-console-tabbar {
   position: fixed;
   left: 8px;
@@ -3456,6 +3461,378 @@ html.dark .h5-log-error-content {
 
 html.dark .mobile-console-tabbar {
   background: rgba(24, 24, 27, 0.92);
+}
+
+/* ==================== H5 操练场（对话） ==================== */
+.h5-playground-page {
+  position: relative;
+}
+
+.h5-playground-page::before {
+  content: '';
+  position: fixed;
+  top: 64px;
+  left: 0;
+  right: 0;
+  height: 220px;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 14% 16%, rgba(37, 99, 235, 0.16), transparent 56%),
+    radial-gradient(circle at 92% 10%, rgba(16, 185, 129, 0.12), transparent 52%);
+  z-index: 0;
+}
+
+.h5-playground-chatCard {
+  position: relative;
+  z-index: 1;
+  border-radius: 20px;
+  border: 1px solid rgba(var(--semi-blue-5), 0.16);
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+  height: calc(100dvh - 60px - var(--h5-console-tabbar-offset) - 10px);
+}
+
+.h5-playground-chat {
+  height: 100%;
+}
+
+.h5-playground-emptyIcon {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: rgba(var(--semi-blue-7), 1);
+  border: 1px solid rgba(var(--semi-blue-5), 0.22);
+  background: rgba(var(--semi-blue-0), 0.22);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+}
+
+.h5-playground-emptyOverlay {
+  position: absolute;
+  top: 64px;
+  left: 0;
+  right: 0;
+  bottom: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.h5-playground-composer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 10px calc(env(safe-area-inset-bottom) + 10px);
+}
+
+.h5-playground-selectRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.h5-playground-selectBtn {
+  flex: 1;
+  min-width: 0;
+  height: 30px;
+  border-radius: 12px;
+  border: 1px solid rgba(var(--semi-blue-5), 0.18);
+  background: rgba(var(--semi-blue-0), 0.14);
+  color: rgba(var(--semi-blue-7), 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.h5-playground-selectBtn.is-secondary {
+  border-color: rgba(148, 163, 184, 0.18);
+  background: rgba(var(--semi-grey-0), 0.18);
+  color: var(--semi-color-text-1);
+}
+
+.h5-playground-selectBtn__k {
+  opacity: 0.85;
+  flex: 0 0 auto;
+}
+
+.h5-playground-selectBtn__v {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.h5-playground-composerInner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.12);
+}
+
+.h5-playground-clearBtn {
+  border-radius: 12px !important;
+}
+
+.h5-playground-clearBtn:hover {
+  background: rgba(244, 63, 94, 0.12) !important;
+  color: rgba(244, 63, 94, 0.9) !important;
+}
+
+.h5-playground-inputWrap {
+  flex: 1;
+  min-width: 0;
+}
+
+.h5-playground-sendBtn {
+  border-radius: 14px !important;
+  background: rgba(var(--semi-blue-5), 0.92) !important;
+  color: rgba(255, 255, 255, 0.96) !important;
+}
+
+.h5-playground-sendBtn:hover {
+  background: rgba(var(--semi-blue-6), 0.92) !important;
+}
+
+.h5-playground-sendBtn:disabled,
+.h5-playground-sendBtn[disabled] {
+  background: rgba(var(--semi-grey-4), 0.32) !important;
+  color: rgba(var(--semi-grey-6), 1) !important;
+}
+
+html.dark .h5-playground-page::before {
+  background:
+    radial-gradient(circle at 14% 16%, rgba(59, 130, 246, 0.24), transparent 56%),
+    radial-gradient(circle at 92% 10%, rgba(34, 197, 94, 0.18), transparent 52%);
+}
+
+html.dark .h5-playground-chatCard {
+  border-color: rgba(59, 130, 246, 0.22);
+  background: rgba(15, 23, 42, 0.78);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.28);
+}
+
+html.dark .h5-playground-composerInner {
+  border-color: rgba(148, 163, 184, 0.18);
+  background: rgba(24, 24, 27, 0.86);
+}
+
+html.dark .h5-playground-selectBtn {
+  border-color: rgba(59, 130, 246, 0.32);
+  background: rgba(59, 130, 246, 0.14);
+  color: rgba(147, 197, 253, 0.95);
+}
+
+html.dark .h5-playground-selectBtn.is-secondary {
+  border-color: rgba(148, 163, 184, 0.18);
+  background: rgba(15, 23, 42, 0.54);
+  color: rgba(226, 232, 240, 0.84);
+}
+
+html.dark .h5-playground-clearBtn:hover {
+  background: rgba(244, 63, 94, 0.18) !important;
+  color: rgba(253, 164, 175, 0.95) !important;
+}
+
+html.dark .h5-playground-sendBtn {
+  background: rgba(59, 130, 246, 0.72) !important;
+}
+
+html.dark .h5-playground-sendBtn:hover {
+  background: rgba(59, 130, 246, 0.82) !important;
+}
+
+html.dark .h5-playground-sendBtn:disabled,
+html.dark .h5-playground-sendBtn[disabled] {
+  background: rgba(148, 163, 184, 0.18) !important;
+  color: rgba(148, 163, 184, 0.72) !important;
+}
+
+/* Picker sheet */
+.h5-playground-pickerSheet .semi-sidesheet-inner {
+  border-top-left-radius: 18px;
+  border-top-right-radius: 18px;
+}
+
+.h5-playground-pickerInner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 12px;
+}
+
+.h5-playground-pickerTabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.h5-playground-pickerTab {
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: rgba(255, 255, 255, 0.78);
+  border-radius: 14px;
+  padding: 10px 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--semi-color-text-0);
+  cursor: pointer;
+}
+
+.h5-playground-pickerTab.is-active {
+  border-color: rgba(var(--semi-blue-5), 0.28);
+  background: rgba(var(--semi-blue-0), 0.18);
+  color: rgba(var(--semi-blue-7), 1);
+}
+
+.h5-playground-pickerSearch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: rgba(var(--semi-grey-0), 0.22);
+}
+
+.h5-playground-pickerSearchIcon {
+  color: var(--semi-color-text-2);
+}
+
+.h5-playground-pickerSearchInput {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 13px;
+  color: var(--semi-color-text-0);
+}
+
+.h5-playground-pickerList {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 8px;
+}
+
+.h5-playground-pickerItem {
+  text-align: left;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: rgba(255, 255, 255, 0.78);
+  border-radius: 14px;
+  padding: 12px 12px;
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  column-gap: 10px;
+  row-gap: 2px;
+  align-items: center;
+}
+
+.h5-playground-pickerItem.is-active {
+  border-color: rgba(var(--semi-blue-5), 0.3);
+  background: rgba(var(--semi-blue-0), 0.18);
+}
+
+.h5-playground-pickerItemTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--semi-color-text-0);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.h5-playground-pickerItemSub {
+  grid-column: 1 / 2;
+  font-size: 12px;
+  color: var(--semi-color-text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.h5-playground-pickerItemTag {
+  grid-column: 2 / 3;
+  grid-row: 1 / 3;
+  align-self: center;
+  justify-self: end;
+  font-size: 11px;
+  font-weight: 800;
+  color: rgba(var(--semi-blue-7), 1);
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(var(--semi-blue-5), 0.22);
+  background: rgba(var(--semi-blue-0), 0.18);
+}
+
+.h5-playground-pickerFooter {
+  padding-bottom: calc(env(safe-area-inset-bottom) + 6px);
+}
+
+html.dark .h5-playground-pickerTab {
+  border-color: rgba(148, 163, 184, 0.18);
+  background: rgba(15, 23, 42, 0.66);
+  color: rgba(226, 232, 240, 0.92);
+}
+
+html.dark .h5-playground-pickerTab.is-active {
+  border-color: rgba(59, 130, 246, 0.34);
+  background: rgba(59, 130, 246, 0.14);
+  color: rgba(147, 197, 253, 0.95);
+}
+
+html.dark .h5-playground-pickerSearch {
+  border-color: rgba(148, 163, 184, 0.18);
+  background: rgba(15, 23, 42, 0.54);
+}
+
+html.dark .h5-playground-pickerItem {
+  border-color: rgba(148, 163, 184, 0.18);
+  background: rgba(15, 23, 42, 0.66);
+}
+
+html.dark .h5-playground-pickerItem.is-active {
+  border-color: rgba(59, 130, 246, 0.34);
+  background: rgba(59, 130, 246, 0.14);
+}
+
+html.dark .h5-playground-pickerItemTitle {
+  color: rgba(226, 232, 240, 0.92);
+}
+
+html.dark .h5-playground-pickerItemSub {
+  color: rgba(148, 163, 184, 0.78);
+}
+
+html.dark .h5-playground-pickerItemTag {
+  color: rgba(147, 197, 253, 0.95);
+  border-color: rgba(59, 130, 246, 0.34);
+  background: rgba(59, 130, 246, 0.16);
 }
 
 /* ==================== H5 首页 App 风格（组件化） ==================== */

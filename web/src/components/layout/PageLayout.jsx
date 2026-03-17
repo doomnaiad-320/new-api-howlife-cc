@@ -54,6 +54,7 @@ const PageLayout = () => {
     '/console/home',
     '/console/log',
     '/console/models-mobile',
+    '/console/playground-mobile',
     '/console/token',
     '/console/personal',
     '/console/topup',
@@ -71,6 +72,7 @@ const PageLayout = () => {
     '/console/home',
     '/console/messages',
     '/console/models-mobile',
+    '/console/playground-mobile',
     '/pricing',
   ];
 

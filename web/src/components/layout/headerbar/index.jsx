@@ -71,6 +71,7 @@ const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
     '/console/log': '日志',
     '/console/models-mobile': '模型列表',
     '/console/messages': '信息',
+    '/console/playground-mobile': '操练场',
     '/console/token': '密钥',
     '/console/personal': '我的',
   };
