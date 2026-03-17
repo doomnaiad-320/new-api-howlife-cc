@@ -27,6 +27,7 @@ const LogsFilters = ({
   formInitValues,
   setFormApi,
   refresh,
+  onQuery,
   setShowColumnSelector,
   formApi,
   setLogType,
@@ -157,6 +158,10 @@ const LogsFilters = ({
               htmlType='submit'
               loading={loading}
               size='small'
+              onClick={() => {
+                // Auto-collapse CardPro mobile actions after user triggers query.
+                onQuery?.();
+              }}
             >
               {t('查询')}
             </Button>

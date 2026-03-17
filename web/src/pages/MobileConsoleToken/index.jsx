@@ -196,13 +196,13 @@ const MobileConsoleToken = () => {
             const active = isActiveStatus(token.status);
             const groupText = formatTokenGroup(token, t);
             const name = token.name || t('未命名密钥');
-            const expiredText = formatExpiredTime(token.expired_time, t);
             const expiredUnix = Number(token.expired_time);
             const isNeverExpire = Number.isFinite(expiredUnix) && expiredUnix === -1;
             const isExpired =
               Number.isFinite(expiredUnix) &&
               expiredUnix > 0 &&
               expiredUnix < Math.floor(Date.now() / 1000);
+            const expiredText = isExpired ? t('已过期') : formatExpiredTime(token.expired_time, t);
 
             return (
               <div
@@ -216,17 +216,23 @@ const MobileConsoleToken = () => {
                       {name}
                     </div>
                     <div className='h5-token-card__times'>
-                      <span className='h5-token-card__created' title={t('创建时间')}>
-                        {t('创建')} {formatCreatedTime(token.created_time)}
-                      </span>
-                      <span
-                        className={`h5-token-card__expires ${
-                          isNeverExpire ? 'is-never' : isExpired ? 'is-expired' : ''
-                        }`}
-                        title={t('到期日期')}
-                      >
-                        {t('到期')} {expiredText}
-                      </span>
+                      {isExpired ? (
+                        <span className='h5-token-card__expires is-expired' title={t('已过期')}>
+                          {t('已过期')}
+                        </span>
+                      ) : (
+                        <>
+                          <span className='h5-token-card__created' title={t('创建时间')}>
+                            {t('创建')} {formatCreatedTime(token.created_time)}
+                          </span>
+                          <span
+                            className={`h5-token-card__expires ${isNeverExpire ? 'is-never' : ''}`}
+                            title={t('到期日期')}
+                          >
+                            {isNeverExpire ? t('永不过期') : `${t('到期')} ${expiredText}`}
+                          </span>
+                        </>
+                      )}
                     </div>
                   </div>
                   <div

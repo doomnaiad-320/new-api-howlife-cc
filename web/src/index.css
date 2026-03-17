@@ -1275,6 +1275,53 @@ html.dark .h5-home-stat-item {
   padding: 2px;
 }
 
+.h5-model-loadMore {
+  padding: 10px 4px 2px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.h5-model-loadMoreSentinel {
+  width: 100%;
+  height: 1px;
+}
+
+.h5-model-loadMoreHint,
+.h5-model-loadMoreDone {
+  font-size: 12px;
+  color: rgba(100, 116, 139, 0.92);
+  font-weight: 700;
+}
+
+.h5-model-loadMoreBtn {
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(37, 99, 235, 0.22);
+  background: rgba(37, 99, 235, 0.08);
+  color: rgba(37, 99, 235, 0.95);
+  font-size: 12px;
+  font-weight: 900;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.h5-model-loadMoreBtn:active {
+  opacity: 0.84;
+}
+
+html.dark .h5-model-loadMoreHint,
+html.dark .h5-model-loadMoreDone {
+  color: rgba(148, 163, 184, 0.9);
+}
+
+html.dark .h5-model-loadMoreBtn {
+  border-color: rgba(59, 130, 246, 0.28);
+  background: rgba(59, 130, 246, 0.14);
+  color: rgba(147, 197, 253, 0.98);
+}
+
 .h5-model-card {
   border: 1px solid rgba(148, 163, 184, 0.24);
   background: linear-gradient(
@@ -1284,6 +1331,32 @@ html.dark .h5-home-stat-item {
     rgba(236, 246, 255, 0.94) 100%
   );
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+}
+
+.h5-model-card.is-per-token {
+  /* Subtle blue glow to match "按量" label */
+  background:
+    radial-gradient(circle at 18% 12%, rgba(59, 130, 246, 0.05), transparent 62%),
+    radial-gradient(circle at 88% -10%, rgba(37, 99, 235, 0.04), transparent 60%),
+    linear-gradient(
+      165deg,
+      rgba(248, 250, 252, 0.98) 0%,
+      rgba(241, 245, 249, 0.96) 48%,
+      rgba(236, 246, 255, 0.94) 100%
+    );
+}
+
+.h5-model-card.is-per-call {
+  /* Amber theme to match "按次" label */
+  background:
+    radial-gradient(circle at 18% 12%, rgba(245, 158, 11, 0.07), transparent 60%),
+    radial-gradient(circle at 88% -10%, rgba(251, 146, 60, 0.05), transparent 58%),
+    linear-gradient(
+      165deg,
+      rgba(248, 250, 252, 0.98) 0%,
+      rgba(241, 245, 249, 0.96) 48%,
+      rgba(236, 246, 255, 0.94) 100%
+    );
 }
 
 .h5-model-card .semi-card-body {
@@ -1383,6 +1456,35 @@ html.dark .h5-home-stat-item {
   letter-spacing: 0.12em;
   font-weight: 600;
   color: #64748b;
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-start;
+  gap: 6px;
+}
+
+.h5-model-tech-vendor-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.h5-model-tech-billing {
+  flex-shrink: 0;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  font-weight: 900;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+.h5-model-tech-billing.is-per-token {
+  color: rgba(37, 99, 235, 0.96);
+}
+
+.h5-model-tech-billing.is-per-call {
+  color: rgba(217, 119, 6, 0.98);
 }
 
 .h5-model-tech-status {
@@ -2835,12 +2937,48 @@ html.dark .h5-model-card {
   box-shadow: 0 10px 28px rgba(2, 6, 23, 0.48);
 }
 
+html.dark .h5-model-card.is-per-token {
+  background:
+    radial-gradient(circle at 18% 10%, rgba(59, 130, 246, 0.1), transparent 62%),
+    radial-gradient(circle at 86% -18%, rgba(99, 102, 241, 0.08), transparent 64%),
+    linear-gradient(
+      170deg,
+      rgba(17, 24, 60, 0.98) 0%,
+      rgba(22, 27, 70, 0.96) 56%,
+      rgba(18, 24, 62, 0.96) 100%
+    );
+}
+
+html.dark .h5-model-card.is-per-call {
+  background:
+    radial-gradient(circle at 18% 10%, rgba(245, 158, 11, 0.12), transparent 62%),
+    radial-gradient(circle at 86% -18%, rgba(251, 146, 60, 0.1), transparent 64%),
+    linear-gradient(
+      170deg,
+      rgba(17, 24, 60, 0.98) 0%,
+      rgba(22, 27, 70, 0.96) 56%,
+      rgba(18, 24, 62, 0.96) 100%
+    );
+}
+
 html.dark .h5-model-tech-title {
   color: rgba(248, 250, 252, 0.98);
 }
 
 html.dark .h5-model-tech-vendor {
   color: rgba(148, 163, 184, 0.9);
+}
+
+html.dark .h5-model-tech-billing {
+  color: rgba(191, 219, 254, 0.92);
+}
+
+html.dark .h5-model-tech-billing.is-per-token {
+  color: rgba(147, 197, 253, 0.98);
+}
+
+html.dark .h5-model-tech-billing.is-per-call {
+  color: rgba(251, 191, 36, 0.95);
 }
 
 html.dark .h5-model-id-copy-btn {
@@ -4474,6 +4612,844 @@ html.dark .h5-tag-expired {
     'Microsoft YaHei', sans-serif;
   -webkit-font-smoothing: antialiased;
 }
+
+/* ==================== H5 我的页（App Grouped Layout） ==================== */
+
+.h5-personal-page {
+  position: relative;
+  max-width: 760px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  background: linear-gradient(180deg, #f7f8fb 0%, #f8fafc 55%, #f8fafc 100%);
+  font-family:
+    -apple-system, 'SF Pro Text', 'Helvetica Neue', 'PingFang SC',
+    'Microsoft YaHei', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.h5-personal-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: calc(52px + env(safe-area-inset-top));
+  padding: env(safe-area-inset-top) 12px 0;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.h5-personal-header-title {
+  font-size: 16px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: #0a0a0a;
+}
+
+.h5-personal-header-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: #0a0a0a;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.h5-personal-header-btn:active {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.h5-personal-body {
+  padding: calc(52px + env(safe-area-inset-top) + 14px) 12px
+    calc(84px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.h5-personal-profile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 0 2px;
+}
+
+.h5-personal-avatar {
+  position: relative;
+  width: 86px;
+  height: 86px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 25% 20%, #60a5fa, #1d4ed8 62%, #0b1220);
+  box-shadow: 0 14px 30px rgba(37, 99, 235, 0.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.98);
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+}
+
+.h5-personal-avatar-edit {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  border: 3px solid rgba(255, 255, 255, 0.95);
+  background: rgba(251, 146, 60, 0.98);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.h5-personal-avatar-edit:active {
+  opacity: 0.85;
+}
+
+.h5-personal-name {
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: rgba(15, 23, 42, 0.95);
+}
+
+.h5-personal-email {
+  font-size: 12px;
+  color: rgba(100, 116, 139, 0.92);
+}
+
+.h5-personal-balanceCard {
+  border-radius: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+  padding: 14px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.h5-personal-balanceLeft {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.h5-personal-balanceLabel {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(100, 116, 139, 0.9);
+}
+
+.h5-personal-balanceValue {
+  font-size: 28px;
+  line-height: 1.05;
+  font-weight: 950;
+  letter-spacing: -0.02em;
+  color: rgba(15, 23, 42, 0.98);
+}
+
+.h5-personal-topupBtn {
+  flex-shrink: 0;
+  height: 34px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(249, 115, 22, 0.96);
+  color: rgba(255, 255, 255, 0.98);
+  font-size: 12px;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: 0 10px 22px rgba(249, 115, 22, 0.22);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.h5-personal-topupBtn:active {
+  opacity: 0.86;
+}
+
+.h5-personal-sectionRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 2px;
+}
+
+.h5-personal-sectionHint {
+  font-size: 12px;
+  font-weight: 750;
+  color: rgba(100, 116, 139, 0.92);
+}
+
+.h5-personal-linkBtn {
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(37, 99, 235, 0.95);
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.h5-personal-linkBtn:active {
+  opacity: 0.8;
+}
+
+.h5-personal-keysCard {
+  border-radius: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+  padding: 14px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.h5-personal-keysCardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.h5-personal-keysCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.h5-personal-keysIcon {
+  width: 38px;
+  height: 38px;
+  border-radius: 14px;
+  background: rgba(249, 115, 22, 0.14);
+  border: 1px solid rgba(249, 115, 22, 0.18);
+  color: rgba(249, 115, 22, 0.96);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.h5-personal-keysCardText {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.h5-personal-keysTitle {
+  font-size: 14px;
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.95);
+}
+
+.h5-personal-keysDesc {
+  font-size: 12px;
+  color: rgba(100, 116, 139, 0.9);
+}
+
+.h5-personal-generateBtnInline {
+  flex-shrink: 0;
+  height: 32px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(249, 115, 22, 0.96);
+  color: rgba(255, 255, 255, 0.98);
+  font-size: 12px;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 12px 26px rgba(249, 115, 22, 0.22);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.h5-personal-generateBtnInline:active {
+  opacity: 0.86;
+}
+
+.h5-personal-latestToken {
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(148, 163, 184, 0.08);
+  padding: 10px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.h5-personal-latestTokenHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.h5-personal-latestTokenLabel {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(100, 116, 139, 0.9);
+}
+
+.h5-personal-latestTokenLink {
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(37, 99, 235, 0.95);
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.h5-personal-latestTokenLink:active {
+  opacity: 0.8;
+}
+
+.h5-personal-latestTokenRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.h5-personal-latestTokenMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.h5-personal-metaPill {
+  max-width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(255, 255, 255, 0.55);
+  color: rgba(51, 65, 85, 0.9);
+  font-size: 11px;
+  line-height: 1.1;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.h5-personal-metaPill__k {
+  flex-shrink: 0;
+  font-weight: 900;
+  color: rgba(100, 116, 139, 0.92);
+}
+
+.h5-personal-metaPill__v {
+  min-width: 0;
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.92);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.h5-personal-metaPill.is-time .h5-personal-metaPill__v,
+.h5-personal-metaPill.is-expire .h5-personal-metaPill__v {
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    'Liberation Mono',
+    'Courier New',
+    monospace;
+  letter-spacing: 0.01em;
+}
+
+.h5-personal-metaPill.is-balance {
+  border-color: rgba(37, 99, 235, 0.22);
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.h5-personal-metaPill.is-balance .h5-personal-metaPill__k {
+  color: rgba(37, 99, 235, 0.82);
+}
+
+.h5-personal-metaPill.is-balance .h5-personal-metaPill__v {
+  color: rgba(37, 99, 235, 0.96);
+}
+
+.h5-personal-metaPill.is-balance.is-unlimited {
+  border-color: rgba(16, 185, 129, 0.26);
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.h5-personal-metaPill.is-balance.is-unlimited .h5-personal-metaPill__k,
+.h5-personal-metaPill.is-balance.is-unlimited .h5-personal-metaPill__v {
+  color: rgba(16, 185, 129, 0.96);
+}
+
+.h5-personal-metaPill.is-expire.is-never {
+  border-color: rgba(16, 185, 129, 0.24);
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.h5-personal-metaPill.is-expire.is-never .h5-personal-metaPill__k,
+.h5-personal-metaPill.is-expire.is-never .h5-personal-metaPill__v {
+  color: rgba(16, 185, 129, 0.96);
+}
+
+.h5-personal-metaPill.is-expire.is-expired {
+  border-color: rgba(244, 63, 94, 0.26);
+  background: rgba(244, 63, 94, 0.1);
+}
+
+.h5-personal-metaPill.is-expire.is-expired .h5-personal-metaPill__k,
+.h5-personal-metaPill.is-expire.is-expired .h5-personal-metaPill__v {
+  color: rgba(244, 63, 94, 0.96);
+}
+
+.h5-personal-latestTokenMain {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.h5-personal-latestTokenName {
+  font-size: 13px;
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.95);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.h5-personal-latestTokenKey {
+  font-size: 12px;
+  color: rgba(51, 65, 85, 0.9);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    'Liberation Mono',
+    'Courier New',
+    monospace;
+}
+
+.h5-personal-latestTokenCopy {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  border: 1px solid rgba(37, 99, 235, 0.22);
+  background: rgba(37, 99, 235, 0.1);
+  color: rgba(37, 99, 235, 0.95);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.h5-personal-latestTokenCopy:active {
+  opacity: 0.8;
+}
+
+.h5-personal-latestTokenEmpty {
+  font-size: 12px;
+  color: rgba(100, 116, 139, 0.9);
+}
+
+.h5-personal-generateBtn {
+  width: 100%;
+  height: 42px;
+  border: none;
+  border-radius: 14px;
+  background: rgba(249, 115, 22, 0.96);
+  color: rgba(255, 255, 255, 0.98);
+  font-size: 13px;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 12px 26px rgba(249, 115, 22, 0.22);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.h5-personal-generateBtn:active {
+  opacity: 0.86;
+}
+
+.h5-personal-blockTitle {
+  margin-top: 2px;
+  padding: 0 2px;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(100, 116, 139, 0.86);
+}
+
+.h5-personal-listGroup {
+  border-radius: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+}
+
+.h5-personal-item {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.h5-personal-itemSwitch {
+  cursor: default;
+}
+
+.h5-personal-itemTextWrap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+}
+
+.h5-personal-itemDesc {
+  font-size: 12px;
+  line-height: 1.25;
+  color: rgba(100, 116, 139, 0.88);
+}
+
+.h5-personal-miniSwitch {
+  flex-shrink: 0;
+  width: 44px;
+  height: 26px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(148, 163, 184, 0.18);
+  padding: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  transition: background 0.18s ease, border-color 0.18s ease, opacity 0.18s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.h5-personal-miniSwitch[disabled] {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.h5-personal-miniSwitch.is-on {
+  border-color: rgba(37, 99, 235, 0.32);
+  background: rgba(37, 99, 235, 0.4);
+  justify-content: flex-end;
+}
+
+.h5-personal-miniSwitchKnob {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.14);
+  transition: transform 0.18s ease;
+}
+
+.h5-personal-itemIcon.is-amber {
+  border-color: rgba(245, 158, 11, 0.22);
+  background: rgba(245, 158, 11, 0.1);
+  color: rgba(217, 119, 6, 0.98);
+}
+
+.h5-personal-item + .h5-personal-item {
+  border-top: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.h5-personal-item:active {
+  background: rgba(148, 163, 184, 0.12);
+}
+
+.h5-personal-itemIcon {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(148, 163, 184, 0.1);
+  color: rgba(51, 65, 85, 0.92);
+}
+
+.h5-personal-itemIcon.is-blue {
+  border-color: rgba(37, 99, 235, 0.18);
+  background: rgba(37, 99, 235, 0.08);
+  color: rgba(37, 99, 235, 0.95);
+}
+
+.h5-personal-itemIcon.is-indigo {
+  border-color: rgba(99, 102, 241, 0.2);
+  background: rgba(99, 102, 241, 0.1);
+  color: rgba(79, 70, 229, 0.98);
+}
+
+.h5-personal-itemIcon.is-slate {
+  border-color: rgba(100, 116, 139, 0.2);
+  background: rgba(100, 116, 139, 0.1);
+  color: rgba(51, 65, 85, 0.92);
+}
+
+.h5-personal-itemIcon.is-red {
+  border-color: rgba(244, 63, 94, 0.22);
+  background: rgba(244, 63, 94, 0.1);
+  color: rgba(244, 63, 94, 0.96);
+}
+
+.h5-personal-itemText {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 800;
+  color: rgba(15, 23, 42, 0.95);
+}
+
+.h5-personal-itemChevron {
+  flex-shrink: 0;
+  color: rgba(100, 116, 139, 0.65);
+}
+
+.h5-personal-item.is-logout .h5-personal-itemText {
+  color: rgba(244, 63, 94, 0.96);
+}
+
+html.dark .h5-personal-page {
+  background:
+    radial-gradient(circle at 18% -10%, rgba(59, 130, 246, 0.22), transparent 50%),
+    radial-gradient(circle at 86% -12%, rgba(99, 102, 241, 0.2), transparent 54%),
+    rgba(15, 23, 42, 0.98);
+}
+
+html.dark .h5-personal-header {
+  background: rgba(15, 23, 42, 0.92);
+  border-bottom-color: rgba(99, 102, 241, 0.22);
+}
+
+html.dark .h5-personal-header-title,
+html.dark .h5-personal-header-btn {
+  color: rgba(248, 250, 252, 0.96);
+}
+
+html.dark .h5-personal-header-btn:active {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+html.dark .h5-personal-name {
+  color: rgba(248, 250, 252, 0.96);
+}
+
+html.dark .h5-personal-email {
+  color: rgba(148, 163, 184, 0.92);
+}
+
+html.dark .h5-personal-balanceCard,
+html.dark .h5-personal-keysCard,
+html.dark .h5-personal-listGroup {
+  border-color: rgba(99, 102, 241, 0.22);
+  background: rgba(20, 28, 62, 0.72);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
+}
+
+html.dark .h5-personal-balanceLabel {
+  color: rgba(148, 163, 184, 0.92);
+}
+
+html.dark .h5-personal-balanceValue {
+  color: rgba(226, 232, 240, 0.96);
+}
+
+html.dark .h5-personal-sectionHint {
+  color: rgba(148, 163, 184, 0.92);
+}
+
+html.dark .h5-personal-linkBtn {
+  color: rgba(147, 197, 253, 0.98);
+}
+
+html.dark .h5-personal-keysTitle {
+  color: rgba(226, 232, 240, 0.96);
+}
+
+html.dark .h5-personal-keysDesc {
+  color: rgba(148, 163, 184, 0.92);
+}
+
+html.dark .h5-personal-latestToken {
+  border-color: rgba(99, 102, 241, 0.18);
+  background: rgba(30, 41, 59, 0.66);
+}
+
+html.dark .h5-personal-latestTokenLabel {
+  color: rgba(148, 163, 184, 0.92);
+}
+
+html.dark .h5-personal-latestTokenName {
+  color: rgba(226, 232, 240, 0.94);
+}
+
+html.dark .h5-personal-latestTokenKey {
+  color: rgba(148, 163, 184, 0.92);
+}
+
+html.dark .h5-personal-latestTokenLink {
+  color: rgba(147, 197, 253, 0.98);
+}
+
+html.dark .h5-personal-latestTokenCopy {
+  border-color: rgba(59, 130, 246, 0.28);
+  background: rgba(59, 130, 246, 0.14);
+  color: rgba(147, 197, 253, 0.98);
+}
+
+html.dark .h5-personal-metaPill {
+  border-color: rgba(99, 102, 241, 0.18);
+  background: rgba(15, 23, 42, 0.56);
+  color: rgba(148, 163, 184, 0.92);
+}
+
+html.dark .h5-personal-metaPill__k {
+  color: rgba(148, 163, 184, 0.92);
+}
+
+html.dark .h5-personal-metaPill__v {
+  color: rgba(226, 232, 240, 0.94);
+}
+
+html.dark .h5-personal-metaPill.is-balance {
+  border-color: rgba(59, 130, 246, 0.28);
+  background: rgba(59, 130, 246, 0.14);
+}
+
+html.dark .h5-personal-metaPill.is-balance .h5-personal-metaPill__k,
+html.dark .h5-personal-metaPill.is-balance .h5-personal-metaPill__v {
+  color: rgba(147, 197, 253, 0.98);
+}
+
+html.dark .h5-personal-metaPill.is-balance.is-unlimited {
+  border-color: rgba(16, 185, 129, 0.28);
+  background: rgba(16, 185, 129, 0.12);
+}
+
+html.dark .h5-personal-metaPill.is-balance.is-unlimited .h5-personal-metaPill__k,
+html.dark .h5-personal-metaPill.is-balance.is-unlimited .h5-personal-metaPill__v {
+  color: rgba(110, 231, 183, 0.98);
+}
+
+html.dark .h5-personal-metaPill.is-expire.is-never {
+  border-color: rgba(16, 185, 129, 0.26);
+  background: rgba(16, 185, 129, 0.1);
+}
+
+html.dark .h5-personal-metaPill.is-expire.is-never .h5-personal-metaPill__k,
+html.dark .h5-personal-metaPill.is-expire.is-never .h5-personal-metaPill__v {
+  color: rgba(110, 231, 183, 0.98);
+}
+
+html.dark .h5-personal-metaPill.is-expire.is-expired {
+  border-color: rgba(244, 63, 94, 0.28);
+  background: rgba(244, 63, 94, 0.12);
+}
+
+html.dark .h5-personal-metaPill.is-expire.is-expired .h5-personal-metaPill__k,
+html.dark .h5-personal-metaPill.is-expire.is-expired .h5-personal-metaPill__v {
+  color: rgba(251, 113, 133, 0.98);
+}
+
+html.dark .h5-personal-item + .h5-personal-item {
+  border-top-color: rgba(99, 102, 241, 0.18);
+}
+
+html.dark .h5-personal-item:active {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+html.dark .h5-personal-itemText {
+  color: rgba(226, 232, 240, 0.94);
+}
+
+html.dark .h5-personal-itemDesc {
+  color: rgba(148, 163, 184, 0.9);
+}
+
+html.dark .h5-personal-miniSwitch {
+  border-color: rgba(99, 102, 241, 0.22);
+  background: rgba(99, 102, 241, 0.14);
+}
+
+html.dark .h5-personal-miniSwitch.is-on {
+  border-color: rgba(59, 130, 246, 0.32);
+  background: rgba(59, 130, 246, 0.35);
+}
+
+html.dark .h5-personal-miniSwitchKnob {
+  background: rgba(226, 232, 240, 0.96);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.35);
+}
+
+html.dark .h5-personal-itemChevron {
+  color: rgba(148, 163, 184, 0.7);
+}
+
 
 /* ==================== H5 创建/更新令牌页（iOS Grouped Table） ==================== */
 

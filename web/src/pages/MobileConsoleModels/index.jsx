@@ -21,7 +21,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   Card,
   Empty,
-  Pagination,
   Select,
   SideSheet,
   Skeleton,
@@ -71,9 +70,14 @@ const getModelVisualMeta = (model) => {
 const MobileConsoleModels = () => {
   const { t } = useTranslation();
   const modelData = useModelPricingData();
+  const [visibleCount, setVisibleCount] = useState(() => {
+    const base = Number(modelData.pageSize || 10);
+    return Math.max(1, base);
+  });
   const [inputTokens, setInputTokens] = useState('');
   const [outputTokens, setOutputTokens] = useState('');
   const [tokenCalcResult, setTokenCalcResult] = useState(null);
+  const [observerSupported, setObserverSupported] = useState(true);
 
   useEffect(() => {
     modelData.setFilterEndpointType('all');
@@ -117,11 +121,68 @@ const MobileConsoleModels = () => {
     ];
   }, [modelData.models, modelData.usableGroup, t]);
 
-  const startIndex = (modelData.currentPage - 1) * modelData.pageSize;
-  const paginatedModels = modelData.filteredModels.slice(
-    startIndex,
-    startIndex + modelData.pageSize,
-  );
+  const filterKey = useMemo(() => {
+    return [
+      modelData.searchValue,
+      modelData.filterVendor,
+      modelData.filterQuotaType,
+      modelData.filterGroup,
+      modelData.filterEndpointType,
+      modelData.filterTag,
+    ].join('|');
+  }, [
+    modelData.searchValue,
+    modelData.filterVendor,
+    modelData.filterQuotaType,
+    modelData.filterGroup,
+    modelData.filterEndpointType,
+    modelData.filterTag,
+  ]);
+
+  useEffect(() => {
+    // Reset to the first batch when filters change.
+    const base = Number(modelData.pageSize || 10);
+    const next = Math.max(1, base);
+    const total = modelData.filteredModels.length;
+    setVisibleCount(total <= 0 ? 0 : Math.min(next, total));
+  }, [filterKey, modelData.pageSize, modelData.filteredModels.length]);
+
+  const hasMore = visibleCount < modelData.filteredModels.length;
+  const visibleModels = modelData.filteredModels.slice(0, visibleCount);
+
+  const loadMore = () => {
+    const base = Number(modelData.pageSize || 10);
+    const step = Math.max(1, base);
+    setVisibleCount((prev) =>
+      Math.min(prev + step, modelData.filteredModels.length),
+    );
+  };
+
+  useEffect(() => {
+    // Progressive rendering (infinite scroll) using IntersectionObserver.
+    if (!hasMore || modelData.loading) return;
+    if (typeof window === 'undefined') return;
+    if (typeof window.IntersectionObserver !== 'function') {
+      setObserverSupported(false);
+      return;
+    }
+    setObserverSupported(true);
+
+    const sentinel = document.querySelector('[data-h5-model-load-more="1"]');
+    if (!sentinel) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry && entry.isIntersecting) {
+          loadMore();
+        }
+      },
+      { root: null, rootMargin: '240px 0px', threshold: 0.01 },
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMore, modelData.loading, visibleCount, modelData.filteredModels.length]);
+
   const selectedEndpoints = useMemo(() => {
     if (!modelData.selectedModel) return [];
     const mapping = modelData.endpointMap || {};
@@ -317,13 +378,13 @@ const MobileConsoleModels = () => {
           <Card className='h5-model-panel-card !rounded-2xl'>
             <Skeleton placeholder={<Skeleton.Paragraph rows={4} />} loading />
           </Card>
-        ) : paginatedModels.length === 0 ? (
+        ) : visibleModels.length === 0 ? (
           <Card className='h5-model-panel-card !rounded-2xl'>
             <Empty image={null} description={t('暂无模型')} />
           </Card>
         ) : (
           <div className='h5-model-list'>
-            {paginatedModels.map((model) => {
+            {visibleModels.map((model) => {
               const priceData = calculateModelPrice({
                 record: model,
                 selectedGroup: modelData.selectedGroup,
@@ -335,7 +396,10 @@ const MobileConsoleModels = () => {
               const visualMeta = getModelVisualMeta(model);
 
               return (
-                <Card key={model.key || model.model_name} className='h5-model-card !rounded-2xl'>
+                <Card
+                  key={model.key || model.model_name}
+                  className={`h5-model-card !rounded-2xl ${priceData.isPerToken ? 'is-per-token' : 'is-per-call'}`}
+                >
                   <div className='h5-model-tech-top'>
                     <div className='h5-model-tech-main'>
                       <div
@@ -362,7 +426,15 @@ const MobileConsoleModels = () => {
                           </button>
                         </div>
                         <div className='h5-model-tech-vendor'>
-                          {(model.vendor_name || t('未知供应商')).toUpperCase()}
+                          <span className='h5-model-tech-vendor-name'>
+                            {(model.vendor_name || t('未知供应商')).toUpperCase()}
+                          </span>
+                          <span
+                            className={`h5-model-tech-billing ${priceData.isPerToken ? 'is-per-token' : 'is-per-call'}`}
+                            title={priceData.isPerToken ? t('按量计费') : t('按次计费')}
+                          >
+                            {priceData.isPerToken ? t('按量') : t('按次')}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -410,18 +482,39 @@ const MobileConsoleModels = () => {
                 </Card>
               );
             })}
+
+            <div className='h5-model-loadMore'>
+              {hasMore ? (
+                <>
+                  <div
+                    className='h5-model-loadMoreSentinel'
+                    data-h5-model-load-more='1'
+                    aria-hidden='true'
+                  />
+                  <div className='h5-model-loadMoreHint' role='status'>
+                    {t('已加载 {{shown}}/{{total}}', {
+                      shown: visibleCount,
+                      total: modelData.filteredModels.length,
+                    })}
+                  </div>
+                  {!observerSupported ? (
+                    <button
+                      type='button'
+                      className='h5-model-loadMoreBtn'
+                      onClick={loadMore}
+                    >
+                      {t('加载更多')}
+                    </button>
+                  ) : null}
+                </>
+              ) : (
+                <div className='h5-model-loadMoreDone' role='status'>
+                  {t('已加载全部')}
+                </div>
+              )}
+            </div>
           </div>
         )}
-
-        <Card className='h5-model-panel-card !rounded-2xl'>
-          <Pagination
-            currentPage={modelData.currentPage}
-            pageSize={modelData.pageSize}
-            total={modelData.filteredModels.length}
-            onPageChange={(page) => modelData.setCurrentPage(page)}
-            size='small'
-          />
-        </Card>
       </Space>
 
       <SideSheet

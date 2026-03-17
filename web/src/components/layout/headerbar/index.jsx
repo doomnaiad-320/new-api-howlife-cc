@@ -75,7 +75,7 @@ const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
     '/console/personal': '我的',
   };
   // H5 sub-pages that manage their own header (back button etc.)
-  const mobileHeadlessRoutes = ['/console/topup'];
+  const mobileHeadlessRoutes = ['/console/topup', '/console/personal'];
   const isMobileHeadless =
     isMobile && !isAdmin() && mobileHeadlessRoutes.includes(location.pathname);
   const isMobileUserPrimaryConsole =

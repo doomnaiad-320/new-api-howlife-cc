@@ -17,7 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import CardPro from '../../common/ui/CardPro';
 import LogsTable from './UsageLogsTable';
 import LogsActions from './UsageLogsActions';
@@ -32,6 +32,12 @@ import { createCardProPagination } from '../../../helpers/utils';
 const LogsPage = () => {
   const logsData = useLogsData();
   const isMobile = useIsMobile();
+  const [mobileActionsCollapseKey, setMobileActionsCollapseKey] = useState(0);
+
+  const collapseMobileActions = useCallback(() => {
+    // Bump key to trigger CardPro effect.
+    setMobileActionsCollapseKey((prev) => prev + 1);
+  }, []);
 
   return (
     <>
@@ -45,7 +51,8 @@ const LogsPage = () => {
         type='type2'
         className={isMobile ? 'h5-usage-logs-card' : ''}
         statsArea={<LogsActions {...logsData} />}
-        searchArea={<LogsFilters {...logsData} />}
+        searchArea={<LogsFilters {...logsData} onQuery={collapseMobileActions} />}
+        mobileActionsCollapseKey={mobileActionsCollapseKey}
         paginationArea={
           isMobile
             ? null

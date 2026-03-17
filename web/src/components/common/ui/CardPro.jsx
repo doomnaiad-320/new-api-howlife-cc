@@ -17,7 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, Divider, Typography, Button } from '@douyinfe/semi-ui';
 import PropTypes from 'prop-types';
 import { useIsMobile } from '../../../hooks/common/useIsMobile';
@@ -52,6 +52,7 @@ const CardPro = ({
   actionsArea,
   searchArea,
   paginationArea, // 新增分页区域
+  mobileActionsCollapseKey, // optional: change value to collapse hideable areas on mobile
   // 卡片属性
   shadows = '',
   bordered = true,
@@ -63,6 +64,14 @@ const CardPro = ({
 }) => {
   const isMobile = useIsMobile();
   const [showMobileActions, setShowMobileActions] = useState(false);
+
+  useEffect(() => {
+    if (!isMobile) return;
+    if (mobileActionsCollapseKey === undefined || mobileActionsCollapseKey === null)
+      return;
+    // External trigger (e.g., "query" clicked) collapses the mobile hideable area.
+    setShowMobileActions(false);
+  }, [isMobile, mobileActionsCollapseKey]);
 
   const toggleMobileActions = () => {
     setShowMobileActions(!showMobileActions);
@@ -191,6 +200,7 @@ CardPro.propTypes = {
   ]),
   searchArea: PropTypes.node,
   paginationArea: PropTypes.node,
+  mobileActionsCollapseKey: PropTypes.any,
   // 表格内容
   children: PropTypes.node,
   // 国际化函数

@@ -1134,7 +1134,40 @@ func UpdateUserSetting(c *gin.Context) {
 	}
 
 	// 更新用户设置
-	user.SetSetting(settings)
+	// Merge into existing setting to avoid dropping unrelated preferences
+	// (e.g., language/sidebar_modules/billing_preference).
+	currentSetting := user.GetSetting()
+	currentSetting.NotifyType = settings.NotifyType
+	currentSetting.QuotaWarningThreshold = settings.QuotaWarningThreshold
+	currentSetting.AcceptUnsetRatioModel = settings.AcceptUnsetRatioModel
+	currentSetting.RecordIpLog = settings.RecordIpLog
+
+	// Clear fields that are not used by the current notify type to keep setting JSON tidy.
+	currentSetting.WebhookUrl = ""
+	currentSetting.WebhookSecret = ""
+	currentSetting.NotificationEmail = ""
+	currentSetting.BarkUrl = ""
+	currentSetting.GotifyUrl = ""
+	currentSetting.GotifyToken = ""
+	currentSetting.GotifyPriority = 0
+
+	if req.QuotaWarningType == dto.NotifyTypeWebhook {
+		currentSetting.WebhookUrl = settings.WebhookUrl
+		currentSetting.WebhookSecret = settings.WebhookSecret
+	}
+	if req.QuotaWarningType == dto.NotifyTypeEmail {
+		currentSetting.NotificationEmail = settings.NotificationEmail
+	}
+	if req.QuotaWarningType == dto.NotifyTypeBark {
+		currentSetting.BarkUrl = settings.BarkUrl
+	}
+	if req.QuotaWarningType == dto.NotifyTypeGotify {
+		currentSetting.GotifyUrl = settings.GotifyUrl
+		currentSetting.GotifyToken = settings.GotifyToken
+		currentSetting.GotifyPriority = settings.GotifyPriority
+	}
+
+	user.SetSetting(currentSetting)
 	if err := user.Update(false); err != nil {
 		common.ApiErrorI18n(c, i18n.MsgUpdateFailed)
 		return
