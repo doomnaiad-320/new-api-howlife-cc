@@ -24,6 +24,7 @@ import { AppCard } from '../ui';
 const HomeInviteCard = ({
   t,
   rebatePercent,
+  rebateMaxCount,
   inviteCode,
   inviteLink,
   affHistoryQuota,
@@ -31,35 +32,71 @@ const HomeInviteCard = ({
   onCopyInviteCode,
   onCopyInviteLink,
 }) => {
-  const slogan =
-    rebatePercent > 0
-      ? t('邀请好友加入，最高可享{{percent}}%充值返利，奖励无上限！', {
-          percent: rebatePercent,
-        })
-      : t('邀请好友加入，充值返利，奖励无上限！');
+  const percentValue = Number(rebatePercent || 0);
+  const maxCountValue = Number(rebateMaxCount || 0);
 
   return (
     <AppCard className='h5-home-app-card h5-home-app-invite-referral'>
-      <div className='h5-home-app-invite-head'>
-        <div className='h5-home-app-card-title h5-home-app-invite-main-title'>
-          <Gift size={16} />
-          <span>{t('邀请返利')}</span>
-        </div>
-        <p className='h5-home-app-invite-subtitle'>{t('有福同享，每次充值都能赚')}</p>
-      </div>
+      <div className='h5-home-app-invite-top'>
+        <div className='h5-home-app-invite-topLeft'>
+          <div className='h5-home-app-invite-titleRow'>
+            <Gift size={16} />
+            <span className='h5-home-app-invite-titleText'>
+              {t('有福同享，每次充值都能赚')}
+            </span>
+          </div>
 
-      <div className='h5-home-app-invite-banner'>{slogan}</div>
+          <div className='h5-home-app-invite-subRow'>
+            <span className='h5-home-app-invite-subMuted'>{t('最高可享')}</span>
+            <span className='h5-home-app-invite-subPercent'>
+              {Number.isFinite(percentValue) ? percentValue : 0}%
+            </span>
+            <span className='h5-home-app-invite-subMuted'>{t('返利')}</span>
+            {Number.isFinite(maxCountValue) && maxCountValue > 0 ? (
+              <span className='h5-home-app-invite-subTimes'>
+                <span className='h5-home-app-invite-subDot' aria-hidden='true'>
+                  ·
+                </span>
+                <span className='h5-home-app-invite-subMuted'>{t('最多')}</span>
+                <span className='h5-home-app-invite-subCount'>
+                  {maxCountValue}
+                </span>
+                <span className='h5-home-app-invite-subMuted'>{t('次')}</span>
+              </span>
+            ) : null}
+          </div>
+        </div>
+
+        <div className='h5-home-app-invite-stats'>
+          <div className='h5-home-app-invite-stat'>
+            <div className='h5-home-app-invite-stat-k'>{t('收益')}</div>
+            <div className='h5-home-app-invite-stat-v'>{affHistoryQuota}</div>
+          </div>
+          <div className='h5-home-app-invite-stat-divider' />
+          <div className='h5-home-app-invite-stat'>
+            <div className='h5-home-app-invite-stat-k'>{t('已邀')}</div>
+            <div className='h5-home-app-invite-stat-v'>{affCount}</div>
+          </div>
+        </div>
+      </div>
 
       <div className='h5-home-app-invite-field'>
         <div className='h5-home-app-invite-field-text'>
-          <span className='h5-home-app-invite-label'>{t('我的邀请码')}:</span>
-          <span className='h5-home-app-invite-value'>{inviteCode || '-'}</span>
+          <span className='h5-home-app-invite-label'>{t('折扣码')}</span>
+          <span className='h5-home-app-invite-value is-strong'>
+            {inviteCode || '-'}
+          </span>
+          <span className='h5-home-app-invite-tip'>
+            {t('充值用折扣码：你返利，好友加享')}{' '}
+            <span className='h5-home-app-invite-tip-accent'>5%</span>{' '}
+            {t('折扣')}
+          </span>
         </div>
         <button
           type='button'
-          className='h5-home-app-copy-btn'
+          className='h5-home-app-copy-btn is-accent'
           onClick={onCopyInviteCode}
-          aria-label={t('复制邀请码')}
+          aria-label={t('复制折扣码')}
         >
           <Copy size={16} />
         </button>
@@ -67,33 +104,18 @@ const HomeInviteCard = ({
 
       <div className='h5-home-app-invite-field'>
         <div className='h5-home-app-invite-field-text'>
-          <span className='h5-home-app-invite-label'>{t('邀请链接')}:</span>
+          <span className='h5-home-app-invite-label'>{t('邀请链接')}</span>
           <span className='h5-home-app-invite-value'>{inviteLink || '-'}</span>
         </div>
         <button
           type='button'
-          className='h5-home-app-copy-btn'
+          className='h5-home-app-copy-btn is-accent'
           onClick={onCopyInviteLink}
           aria-label={t('复制邀请链接')}
         >
           <Copy size={16} />
         </button>
       </div>
-
-      <div className='h5-home-app-invite-metrics'>
-        <div className='h5-home-app-invite-metric'>
-          <p className='h5-home-app-invite-metric-label'>{t('累计收益')}</p>
-          <p className='h5-home-app-invite-metric-value'>{affHistoryQuota}</p>
-        </div>
-        <div className='h5-home-app-invite-metric h5-home-app-invite-metric-second'>
-          <p className='h5-home-app-invite-metric-label'>{t('成功邀请')}</p>
-          <p className='h5-home-app-invite-metric-value'>{t('{{count}}人', { count: affCount })}</p>
-        </div>
-      </div>
-
-      <p className='h5-home-app-invite-note'>
-        {t('新用户在充值时填写您的邀请码，您将获得充值金额的返利。')}
-      </p>
     </AppCard>
   );
 };

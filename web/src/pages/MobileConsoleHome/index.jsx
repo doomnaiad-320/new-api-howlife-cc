@@ -20,9 +20,12 @@ For commercial licensing, please contact support@quantumnous.com
 import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Bell } from 'lucide-react';
 import { API, copy, renderQuota, setUserData, showSuccess } from '../../helpers';
 import { StatusContext } from '../../context/Status';
 import { UserContext } from '../../context/User';
+import NoticeModal from '../../components/layout/NoticeModal';
+import { useNotifications } from '../../hooks/common/useNotifications';
 import {
   HomeAnnouncementCard,
   HomeHeroCard,
@@ -55,6 +58,13 @@ const MobileConsoleHome = () => {
   const navigate = useNavigate();
   const [statusState] = useContext(StatusContext);
   const [userState, userDispatch] = useContext(UserContext);
+  const {
+    noticeVisible,
+    unreadCount,
+    handleNoticeOpen,
+    handleNoticeClose,
+    getUnreadKeys,
+  } = useNotifications(statusState);
   const [noticeSummary, setNoticeSummary] = useState('');
   const [rebateInfo, setRebateInfo] = useState({
     percent: 0,
@@ -67,6 +77,15 @@ const MobileConsoleHome = () => {
   const latestAnnouncements = useMemo(
     () => (Array.isArray(announcements) ? announcements.slice(0, 3) : []),
     [announcements],
+  );
+  const unreadKeys = useMemo(() => getUnreadKeys(), [announcements]);
+  const latestAnnouncementKey = useMemo(() => {
+    const item = latestAnnouncements[0];
+    if (!item) return '';
+    return `${item?.publishDate || ''}-${(item?.content || '').slice(0, 30)}`;
+  }, [latestAnnouncements]);
+  const latestIsUnread = Boolean(
+    latestAnnouncementKey && unreadKeys.includes(latestAnnouncementKey),
   );
 
   const userName = userState?.user?.username || t('用户');
@@ -141,6 +160,14 @@ const MobileConsoleHome = () => {
 
   return (
     <div className='h5-console-page h5-home-app-shell h5-home-app-offset px-2 pb-3'>
+      <NoticeModal
+        visible={noticeVisible}
+        onClose={handleNoticeClose}
+        isMobile
+        defaultTab={unreadCount > 0 ? 'system' : 'inApp'}
+        unreadKeys={unreadKeys}
+      />
+
       <div className='h5-home-app-layout'>
         <HomeHeroCard
           t={t}
@@ -158,12 +185,15 @@ const MobileConsoleHome = () => {
           noticeSummary={noticeSummary}
           cleanMarkdownText={cleanMarkdownText}
           formatDate={formatDate}
-          onViewMore={() => navigate('/console/messages')}
+          onViewMore={handleNoticeOpen}
+          hasNew={unreadCount > 0}
+          latestIsUnread={latestIsUnread}
         />
 
         <HomeInviteCard
           t={t}
           rebatePercent={rebateInfo.percent}
+          rebateMaxCount={rebateInfo.maxCount}
           inviteCode={inviteCodeValue}
           inviteLink={inviteLink}
           affHistoryQuota={renderQuota(userState?.user?.aff_history_quota || 0)}
@@ -172,6 +202,21 @@ const MobileConsoleHome = () => {
           onCopyInviteLink={handleCopyInviteLink}
         />
       </div>
+
+      <button
+        type='button'
+        className='h5-home-notice-fab'
+        onClick={handleNoticeOpen}
+        aria-label={t('打开系统公告')}
+      >
+        <Bell size={18} />
+        <span className='h5-home-notice-fab-text'>{t('公告')}</span>
+        {unreadCount > 0 ? (
+          <span className='h5-home-notice-fab-badge'>
+            {unreadCount > 99 ? '99+' : unreadCount}
+          </span>
+        ) : null}
+      </button>
     </div>
   );
 };

@@ -22,6 +22,7 @@ import { Typography } from '@douyinfe/semi-ui';
 import { useHeaderBar } from '../../../hooks/common/useHeaderBar';
 import { useNotifications } from '../../../hooks/common/useNotifications';
 import { useNavigation } from '../../../hooks/common/useNavigation';
+import { ChevronDown } from 'lucide-react';
 import { isAdmin } from '../../../helpers';
 import NoticeModal from '../NoticeModal';
 import MobileMenuButton from './MobileMenuButton';
@@ -87,6 +88,28 @@ const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
   const isMobileHomeRoute =
     isMobile && !isAdmin() && location.pathname === '/console/home';
   const [isHomeTopbarScrolled, setIsHomeTopbarScrolled] = React.useState(false);
+  const [h5PlaygroundModel, setH5PlaygroundModel] = React.useState(() => {
+    try {
+      return sessionStorage.getItem('h5_playground_model') || '';
+    } catch (e) {
+      return '';
+    }
+  });
+
+  React.useEffect(() => {
+    if (!(isMobile && !isAdmin() && location.pathname === '/console/playground-mobile')) {
+      return;
+    }
+
+    const handler = (event) => {
+      const model = String(event?.detail?.model || '').trim();
+      if (!model) return;
+      setH5PlaygroundModel(model);
+    };
+
+    window.addEventListener('h5-playground-model-changed', handler);
+    return () => window.removeEventListener('h5-playground-model-changed', handler);
+  }, [isMobile, location.pathname]);
 
   React.useEffect(() => {
     if (!isMobileHomeRoute) {
@@ -138,7 +161,13 @@ const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
 
       <div className='w-full px-2'>
         {isMobileUserPrimaryConsole ? (
-          <div className='flex items-center h-16 px-1'>
+          <div
+            className={`flex items-center h-16 px-1 ${
+              location.pathname === '/console/playground-mobile'
+                ? 'justify-between'
+                : ''
+            }`}
+          >
             <Typography.Text
               strong
               style={{ fontSize: 16 }}
@@ -146,6 +175,25 @@ const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
             >
               {mobileTitle}
             </Typography.Text>
+
+            {location.pathname === '/console/playground-mobile' ? (
+              <button
+                type='button'
+                className='h5-playground-topModelBtn'
+                onClick={() => {
+                  window.dispatchEvent(
+                    new CustomEvent('h5-playground-open-picker', {
+                      detail: { mode: 'model' },
+                    }),
+                  );
+                }}
+              >
+                <span className='h5-playground-topModelBtnText'>
+                  {h5PlaygroundModel || t('模型')}
+                </span>
+                <ChevronDown size={14} />
+              </button>
+            ) : null}
           </div>
         ) : (
           <div className='flex items-center justify-between h-16'>

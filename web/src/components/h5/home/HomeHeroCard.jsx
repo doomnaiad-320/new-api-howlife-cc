@@ -23,7 +23,6 @@ import { AppButton, AppCard } from '../ui';
 
 const HomeHeroCard = ({
   t,
-  userName,
   balance,
   usedQuota,
   statQuota,
@@ -31,18 +30,7 @@ const HomeHeroCard = ({
   onTopup,
 }) => {
   return (
-    <AppCard className='h5-home-app-hero'>
-      <div className='h5-home-app-hero-head'>
-        <div className='h5-home-app-kicker'>{t('移动端控制台')}</div>
-        <div className='h5-home-app-online'>
-          <span className='h5-home-app-online-dot' />
-          <span>{t('在线')}</span>
-        </div>
-      </div>
-
-      <p className='h5-home-app-hero-sub'>{t('欢迎回来')}</p>
-      <h2 className='h5-home-app-hero-title'>{t('你好，{{name}}', { name: userName })}</h2>
-
+    <AppCard className='h5-home-app-hero h5-home-app-hero--minimal'>
       <div className='h5-home-app-balance-row'>
         <div className='h5-home-app-balance'>
           <p className='h5-home-app-hero-sub'>{t('当前余额')}</p>

@@ -20,7 +20,7 @@ For commercial licensing, please contact support@quantumnous.com
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Button, Chat, Empty, SideSheet, Toast } from '@douyinfe/semi-ui';
 import { IconClose } from '@douyinfe/semi-icons';
-import { ChevronDown, Layers3, Search, SlidersHorizontal } from 'lucide-react';
+import { Layers3, Search, SlidersHorizontal } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { UserContext } from '../../context/User';
@@ -55,43 +55,12 @@ const generateAvatarDataUrl = (username) => {
   return `data:image/svg+xml;base64,${encodeToBase64(svg)}`;
 };
 
-const getGroupDisplayLabel = (groups, value) => {
-  const val = String(value || '').trim();
-  if (!val) return 'default';
-  const found = Array.isArray(groups)
-    ? groups.find((g) => String(g.value) === val)
-    : null;
-  return found?.fullLabel || found?.label || val;
-};
-
-const H5PlaygroundInputArea = ({
-  detailProps,
-  modelLabel,
-  groupLabel,
-  onOpenPicker,
-}) => {
-  const { t } = useTranslation();
-  const { clearContextNode, inputNode, sendNode, onClick } = detailProps || {};
-
-  const styledClearNode = clearContextNode
-    ? React.cloneElement(clearContextNode, {
-        className: `h5-playground-clearBtn ${clearContextNode.props.className || ''}`,
-        style: {
-          ...clearContextNode.props.style,
-          width: 36,
-          height: 36,
-          minWidth: 36,
-          padding: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        },
-      })
-    : null;
+const H5PlaygroundInputArea = ({ detailProps }) => {
+  const { inputNode, sendNode, onClick } = detailProps || {};
 
   const styledSendNode = sendNode
     ? React.cloneElement(sendNode, {
-        className: `h5-playground-sendBtn ${sendNode.props.className || ''}`,
+      className: `h5-playground-sendBtn ${sendNode.props.className || ''}`,
         style: {
           ...sendNode.props.style,
           width: 40,
@@ -107,43 +76,7 @@ const H5PlaygroundInputArea = ({
 
   return (
     <div className='h5-playground-composer' onClick={onClick}>
-      <div className='h5-playground-selectRow'>
-        <button
-          type='button'
-          className='h5-playground-selectBtn'
-          onClick={(e) => {
-            e.stopPropagation();
-            onOpenPicker('model');
-          }}
-          aria-label={t('选择模型')}
-        >
-          <SlidersHorizontal size={13} />
-          <span className='h5-playground-selectBtn__k'>{t('模型')}</span>
-          <span className='h5-playground-selectBtn__v'>
-            {modelLabel || t('请选择')}
-          </span>
-          <ChevronDown size={13} />
-        </button>
-
-        <button
-          type='button'
-          className='h5-playground-selectBtn is-secondary'
-          onClick={(e) => {
-            e.stopPropagation();
-            onOpenPicker('group');
-          }}
-          aria-label={t('选择分组')}
-        >
-          <Layers3 size={13} />
-          <span className='h5-playground-selectBtn__k'>{t('分组')}</span>
-          <span className='h5-playground-selectBtn__v'>{groupLabel || 'default'}</span>
-          <ChevronDown size={13} />
-        </button>
-      </div>
-
       <div className='h5-playground-composerInner'>
-        {styledClearNode}
-
         <div className='h5-playground-inputWrap'>{inputNode}</div>
         {styledSendNode}
       </div>
@@ -160,8 +93,8 @@ const MobileConsolePlayground = () => {
   const [models, setModels] = useState([]);
   const [groups, setGroups] = useState([]);
   const [inputs, setInputs] = useState(() => ({
-    model: '',
-    group: '',
+    model: sessionStorage.getItem('h5_playground_model') || '',
+    group: sessionStorage.getItem('h5_playground_group') || '',
     stream: true,
   }));
 
@@ -248,6 +181,20 @@ const MobileConsolePlayground = () => {
     };
   }, [onStopGenerator]);
 
+  useEffect(() => {
+    const model = String(inputs.model || '').trim();
+    if (!model) return;
+    sessionStorage.setItem('h5_playground_model', model);
+    window.dispatchEvent(
+      new CustomEvent('h5-playground-model-changed', { detail: { model } }),
+    );
+  }, [inputs.model]);
+
+  useEffect(() => {
+    const group = String(inputs.group || '').trim();
+    sessionStorage.setItem('h5_playground_group', group);
+  }, [inputs.group]);
+
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerMode, setPickerMode] = useState('model'); // 'model' | 'group'
   const [pickerQuery, setPickerQuery] = useState('');
@@ -257,6 +204,15 @@ const MobileConsolePlayground = () => {
     setPickerQuery('');
     setPickerOpen(true);
   }, []);
+
+  useEffect(() => {
+    const handler = (event) => {
+      const mode = event?.detail?.mode || 'model';
+      openPicker(mode);
+    };
+    window.addEventListener('h5-playground-open-picker', handler);
+    return () => window.removeEventListener('h5-playground-open-picker', handler);
+  }, [openPicker]);
 
   const filteredModels = useMemo(() => {
     const q = String(pickerQuery || '').trim().toLowerCase();
@@ -273,12 +229,6 @@ const MobileConsolePlayground = () => {
       return v.includes(q) || lbl.includes(q);
     });
   }, [groups, pickerQuery]);
-
-  const modelLabel = useMemo(() => String(inputs.model || '').trim(), [inputs.model]);
-  const groupLabel = useMemo(
-    () => getGroupDisplayLabel(groups, inputs.group),
-    [groups, inputs.group],
-  );
 
   const toggleReasoningExpansion = useCallback((messageId) => {
     setMessages((prev) =>
@@ -341,16 +291,9 @@ const MobileConsolePlayground = () => {
 
   const renderInputArea = useCallback(
     (props) => {
-      return (
-        <H5PlaygroundInputArea
-          {...props}
-          modelLabel={modelLabel}
-          groupLabel={groupLabel}
-          onOpenPicker={openPicker}
-        />
-      );
+      return <H5PlaygroundInputArea {...props} />;
     },
-    [modelLabel, groupLabel, openPicker],
+    [],
   );
 
   return (
@@ -372,7 +315,7 @@ const MobileConsolePlayground = () => {
                 Toast.warning({ content: t('此消息没有可复制内容'), duration: 2 });
               }
             }}
-            showClearContext
+            showClearContext={false}
             onClear={handleClearMessages}
             showStopGenerate
             onStopGenerator={onStopGenerator}

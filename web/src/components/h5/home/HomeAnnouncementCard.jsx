@@ -28,6 +28,8 @@ const HomeAnnouncementCard = ({
   cleanMarkdownText,
   formatDate,
   onViewMore,
+  hasNew = false,
+  latestIsUnread = false,
 }) => {
   const hasData = latestAnnouncements.length > 0 || Boolean(noticeSummary);
   const timelineItems = latestAnnouncements.map((item, index) => ({
@@ -51,6 +53,7 @@ const HomeAnnouncementCard = ({
           <Bell size={16} />
           <span>{t('系统公告')}</span>
           <span className='h5-home-app-badge'>{timelineItems.length || 0}</span>
+          {hasNew ? <span className='h5-home-app-newTag'>{t('NEW')}</span> : null}
         </div>
         <AppButton
           type='ghost'
@@ -75,7 +78,12 @@ const HomeAnnouncementCard = ({
                 ) : null}
               </div>
               <div className='h5-home-app-timeline-content'>
-                <div className='h5-home-app-timeline-time'>{item.publishDate}</div>
+                <div className='h5-home-app-timeline-time'>
+                  <span>{item.publishDate}</span>
+                  {index === 0 && latestIsUnread ? (
+                    <span className='h5-home-app-timeline-new'>{t('NEW')}</span>
+                  ) : null}
+                </div>
                 <div
                   className={`h5-home-app-timeline-text ${index === 0 ? 'is-latest' : ''}`}
                 >
