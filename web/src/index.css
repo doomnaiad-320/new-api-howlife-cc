@@ -770,6 +770,11 @@ html.dark .with-pastel-balls::before {
     max-height: calc(100vh - 77px);
   }
 
+  .h5-usage-logs-card {
+    height: auto;
+    max-height: none;
+  }
+
   /* H5 usage logs: keep top operation area fixed without blocking list scroll */
   .h5-usage-logs-card .semi-card-header {
     position: sticky;
@@ -782,7 +787,8 @@ html.dark .with-pastel-balls::before {
   }
 
   .h5-usage-logs-card .semi-card-body {
-    overscroll-behavior: contain;
+    overflow-y: visible;
+    overscroll-behavior: auto;
     -webkit-overflow-scrolling: touch;
   }
 }
