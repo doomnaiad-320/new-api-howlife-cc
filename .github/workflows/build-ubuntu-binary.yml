@@ -1,0 +1,83 @@
+name: Build Ubuntu Binary
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Optional version label for the binary'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build-ubuntu-amd64:
+    name: Build Ubuntu amd64 Binary
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine version
+        shell: bash
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="$(git describe --tags --always --dirty 2>/dev/null || true)"
+            if [ -z "$VERSION" ]; then
+              VERSION="manual-${GITHUB_RUN_NUMBER}-$(git rev-parse --short HEAD)"
+            fi
+          fi
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "Using version: $VERSION"
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Build frontend
+        env:
+          CI: ""
+          NODE_OPTIONS: "--max-old-space-size=4096"
+        run: |
+          cd web
+          bun install
+          DISABLE_ESLINT_PLUGIN='true' VITE_REACT_APP_VERSION="$VERSION" bun run build
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.1'
+
+      - name: Build backend
+        shell: bash
+        run: |
+          mkdir -p build
+          go mod download
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+            go build \
+            -ldflags "-s -w -X 'github.com/QuantumNous/new-api/common.Version=$VERSION'" \
+            -o "build/new-api-linux-amd64"
+
+      - name: Package artifact
+        shell: bash
+        run: |
+          cd build
+          sha256sum new-api-linux-amd64 > new-api-linux-amd64.sha256
+          tar -czf new-api-linux-amd64.tar.gz new-api-linux-amd64 new-api-linux-amd64.sha256
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: new-api-ubuntu-amd64-${{ env.VERSION }}
+          path: |
+            build/new-api-linux-amd64
+            build/new-api-linux-amd64.sha256
+            build/new-api-linux-amd64.tar.gz
+          if-no-files-found: error
