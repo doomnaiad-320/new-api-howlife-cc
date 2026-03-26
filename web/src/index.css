@@ -791,6 +791,69 @@ html.dark .with-pastel-balls::before {
     overscroll-behavior: auto;
     -webkit-overflow-scrolling: touch;
   }
+
+  .h5-usage-logs-shell {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 100%;
+  }
+
+  .h5-usage-logs-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 12;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 2px 0 8px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.22);
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .h5-usage-logs-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .h5-usage-logs-stat {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 8px;
+    border-radius: 12px;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    background: rgba(255, 255, 255, 0.74);
+    box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
+  }
+
+  .h5-usage-logs-stat-label {
+    font-size: 10px;
+    line-height: 1.3;
+    color: #64748b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .h5-usage-logs-stat-value {
+    font-size: 12px;
+    line-height: 1.35;
+    color: #0f172a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .h5-usage-logs-filter-trigger {
+    width: 100%;
+    touch-action: manipulation;
+  }
 }
 
 /* ==================== 模型定价页面布局 ==================== */
@@ -953,17 +1016,12 @@ html.dark .with-pastel-balls::before {
   right: 0;
   height: 180px;
   pointer-events: none;
-  background:
-    radial-gradient(
+  background: radial-gradient(
       circle at 12% 10%,
       rgba(37, 99, 235, 0.18),
       transparent 56%
     ),
-    radial-gradient(
-      circle at 92% 0%,
-      rgba(249, 115, 22, 0.18),
-      transparent 52%
-    );
+    radial-gradient(circle at 92% 0%, rgba(249, 115, 22, 0.18), transparent 52%);
   z-index: 0;
 }
 
@@ -973,13 +1031,12 @@ html.dark .with-pastel-balls::before {
   border-radius: 20px;
   padding: 14px;
   border: 1px solid rgba(var(--semi-blue-5), 0.16);
-  background:
-    linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.96) 0%,
-      rgba(248, 250, 252, 0.94) 52%,
-      rgba(239, 246, 255, 0.92) 100%
-    );
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.96) 0%,
+    rgba(248, 250, 252, 0.94) 52%,
+    rgba(239, 246, 255, 0.92) 100%
+  );
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
 }
 
@@ -1059,12 +1116,11 @@ html.dark .with-pastel-balls::before {
 }
 
 .h5-home-announcement-card {
-  background:
-    linear-gradient(
-      180deg,
-      rgba(var(--semi-blue-0), 0.16) 0%,
-      rgba(255, 255, 255, 0.98) 42%
-    );
+  background: linear-gradient(
+    180deg,
+    rgba(var(--semi-blue-0), 0.16) 0%,
+    rgba(255, 255, 255, 0.98) 42%
+  );
 }
 
 .h5-home-announcement-main {
@@ -1105,12 +1161,11 @@ html.dark .with-pastel-balls::before {
 }
 
 .h5-home-invite-card {
-  background:
-    linear-gradient(
-      180deg,
-      rgba(var(--semi-green-0), 0.26) 0%,
-      rgba(255, 255, 255, 0.98) 48%
-    );
+  background: linear-gradient(
+    180deg,
+    rgba(var(--semi-green-0), 0.26) 0%,
+    rgba(255, 255, 255, 0.98) 48%
+  );
 }
 
 .h5-home-stat-grid {
@@ -1130,12 +1185,11 @@ html.dark .with-pastel-balls::before {
 }
 
 .h5-home-rebate-card {
-  background:
-    linear-gradient(
-      135deg,
-      rgba(249, 115, 22, 0.1) 0%,
-      rgba(37, 99, 235, 0.06) 100%
-    );
+  background: linear-gradient(
+    135deg,
+    rgba(249, 115, 22, 0.1) 0%,
+    rgba(37, 99, 235, 0.06) 100%
+  );
 }
 
 .h5-home-rebate {
@@ -1157,20 +1211,22 @@ html.dark .with-pastel-balls::before {
 }
 
 html.dark .h5-home-page::before {
-  background:
-    radial-gradient(circle at 12% 10%, rgba(59, 130, 246, 0.24), transparent 56%),
+  background: radial-gradient(
+      circle at 12% 10%,
+      rgba(59, 130, 246, 0.24),
+      transparent 56%
+    ),
     radial-gradient(circle at 92% 0%, rgba(249, 115, 22, 0.24), transparent 52%);
 }
 
 html.dark .h5-home-hero {
   border-color: rgba(59, 130, 246, 0.26);
-  background:
-    linear-gradient(
-      135deg,
-      rgba(15, 23, 42, 0.96) 0%,
-      rgba(23, 35, 56, 0.94) 60%,
-      rgba(18, 36, 64, 0.92) 100%
-    );
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.96) 0%,
+    rgba(23, 35, 56, 0.94) 60%,
+    rgba(18, 36, 64, 0.92) 100%
+  );
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.32);
 }
 
@@ -1346,9 +1402,16 @@ html.dark .h5-model-loadMoreBtn {
 
 .h5-model-card.is-per-token {
   /* Subtle blue glow to match "按量" label */
-  background:
-    radial-gradient(circle at 18% 12%, rgba(59, 130, 246, 0.05), transparent 62%),
-    radial-gradient(circle at 88% -10%, rgba(37, 99, 235, 0.04), transparent 60%),
+  background: radial-gradient(
+      circle at 18% 12%,
+      rgba(59, 130, 246, 0.05),
+      transparent 62%
+    ),
+    radial-gradient(
+      circle at 88% -10%,
+      rgba(37, 99, 235, 0.04),
+      transparent 60%
+    ),
     linear-gradient(
       165deg,
       rgba(248, 250, 252, 0.98) 0%,
@@ -1359,9 +1422,16 @@ html.dark .h5-model-loadMoreBtn {
 
 .h5-model-card.is-per-call {
   /* Amber theme to match "按次" label */
-  background:
-    radial-gradient(circle at 18% 12%, rgba(245, 158, 11, 0.07), transparent 60%),
-    radial-gradient(circle at 88% -10%, rgba(251, 146, 60, 0.05), transparent 58%),
+  background: radial-gradient(
+      circle at 18% 12%,
+      rgba(245, 158, 11, 0.07),
+      transparent 60%
+    ),
+    radial-gradient(
+      circle at 88% -10%,
+      rgba(251, 146, 60, 0.05),
+      transparent 58%
+    ),
     linear-gradient(
       165deg,
       rgba(248, 250, 252, 0.98) 0%,
@@ -1684,9 +1754,16 @@ html.dark .h5-model-loadMoreBtn {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background:
-    radial-gradient(circle at 15% -10%, rgba(59, 130, 246, 0.15), transparent 48%),
-    radial-gradient(circle at 85% -15%, rgba(148, 163, 184, 0.22), transparent 52%),
+  background: radial-gradient(
+      circle at 15% -10%,
+      rgba(59, 130, 246, 0.15),
+      transparent 48%
+    ),
+    radial-gradient(
+      circle at 85% -15%,
+      rgba(148, 163, 184, 0.22),
+      transparent 52%
+    ),
     #f3f5f8;
 }
 
@@ -1789,15 +1866,8 @@ html.dark .h5-model-loadMoreBtn {
   line-height: 1.4;
   color: #64748b;
   word-break: break-all;
-  font-family:
-    ui-monospace,
-    SFMono-Regular,
-    Menlo,
-    Monaco,
-    Consolas,
-    'Liberation Mono',
-    'Courier New',
-    monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
 }
 
 .h5-model-detail-endpoint-method {
@@ -2193,15 +2263,8 @@ html.dark .h5-model-loadMoreBtn {
   font-size: 12px;
   line-height: 1.2;
   color: rgba(100, 116, 139, 0.92);
-  font-family:
-    ui-monospace,
-    SFMono-Regular,
-    Menlo,
-    Monaco,
-    Consolas,
-    'Liberation Mono',
-    'Courier New',
-    monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
 }
 
 .h5-token-card__times {
@@ -2228,15 +2291,8 @@ html.dark .h5-model-loadMoreBtn {
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-family:
-    ui-monospace,
-    SFMono-Regular,
-    Menlo,
-    Monaco,
-    Consolas,
-    'Liberation Mono',
-    'Courier New',
-    monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
 }
 
 .h5-token-card__expires.is-never {
@@ -2304,15 +2360,8 @@ html.dark .h5-model-loadMoreBtn {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-family:
-    ui-monospace,
-    SFMono-Regular,
-    Menlo,
-    Monaco,
-    Consolas,
-    'Liberation Mono',
-    'Courier New',
-    monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
 }
 
 .h5-token-card__copyBtn {
@@ -2357,15 +2406,8 @@ html.dark .h5-model-loadMoreBtn {
   font-size: 13px;
   font-weight: 800;
   color: rgba(15, 23, 42, 0.95);
-  font-family:
-    ui-monospace,
-    SFMono-Regular,
-    Menlo,
-    Monaco,
-    Consolas,
-    'Liberation Mono',
-    'Courier New',
-    monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
 }
 
 .h5-token-card__quota {
@@ -2444,17 +2486,9 @@ html.dark .h5-model-loadMoreBtn {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-family:
-    ui-monospace,
-    SFMono-Regular,
-    Menlo,
-    Monaco,
-    Consolas,
-    'Liberation Mono',
-    'Courier New',
-    monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
 }
-
 
 .h5-token-card__actions {
   display: inline-flex;
@@ -2518,8 +2552,11 @@ html.dark .h5-model-loadMoreBtn {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 2px;
+  gap: 10px;
+  padding: 0 0 4px;
+  touch-action: pan-y;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .h5-log-card-list::before {
@@ -2528,8 +2565,11 @@ html.dark .h5-model-loadMoreBtn {
   inset: -10px -8px auto -8px;
   height: 220px;
   border-radius: 20px;
-  background:
-    radial-gradient(circle at 12% 8%, rgba(59, 130, 246, 0.2), transparent 56%),
+  background: radial-gradient(
+      circle at 12% 8%,
+      rgba(59, 130, 246, 0.2),
+      transparent 56%
+    ),
     radial-gradient(circle at 88% 0%, rgba(148, 163, 184, 0.2), transparent 52%);
   pointer-events: none;
   z-index: 0;
@@ -2558,40 +2598,63 @@ html.dark .h5-model-loadMoreBtn {
   background: rgba(255, 255, 255, 0.72);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.07);
+  box-shadow: 0 6px 24px rgba(31, 38, 135, 0.06);
+  overflow: hidden;
+  touch-action: pan-y;
+}
+
+.h5-log-card .semi-card-body {
+  padding: 9px 10px !important;
 }
 
 .h5-log-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
 }
 
-.h5-log-model-btn {
-  width: 100%;
-  min-height: 0 !important;
-  padding: 0 !important;
-  border: none !important;
-  justify-content: flex-start !important;
+.h5-log-model-main {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  touch-action: pan-y;
 }
 
 .h5-log-model-title {
   font-family: 'Space Grotesk', 'Inter', sans-serif;
   font-weight: 600;
-  font-size: 16px;
+  font-size: 14px;
   line-height: 1.4;
   color: #1c1c1e;
   text-align: left;
   word-break: break-all;
 }
 
+.h5-log-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #64748b;
+  flex-shrink: 0;
+  touch-action: manipulation;
+}
+
 .h5-log-time-row {
   margin-top: 4px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
+  flex-wrap: wrap;
   min-width: 0;
 }
 
@@ -2606,15 +2669,12 @@ html.dark .h5-model-loadMoreBtn {
 
 .h5-log-group-pill {
   display: inline-flex;
-  align-items: center;
-  gap: 6px;
+  align-items: baseline;
+  gap: 4px;
   min-width: 0;
-  max-width: 54%;
-  border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.3);
-  background: rgba(248, 250, 252, 0.78);
-  padding: 2px 8px;
-  flex-shrink: 0;
+  max-width: 100%;
+  padding: 0;
+  flex-shrink: 1;
 }
 
 .h5-log-group-pill > span {
@@ -2637,31 +2697,25 @@ html.dark .h5-model-loadMoreBtn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 56px;
-  border-radius: 999px;
-  border: 1px solid transparent;
-  padding: 2px 10px;
+  min-width: 0;
+  padding: 0;
   font-size: 11px;
   font-weight: 600;
   flex-shrink: 0;
+  white-space: nowrap;
+  line-height: 1.4;
 }
 
 .h5-log-status-chip.is-success {
   color: #065f46;
-  background: rgba(16, 185, 129, 0.16);
-  border-color: rgba(16, 185, 129, 0.35);
 }
 
 .h5-log-status-chip.is-warning {
   color: #92400e;
-  background: rgba(245, 158, 11, 0.18);
-  border-color: rgba(245, 158, 11, 0.36);
 }
 
 .h5-log-status-chip.is-fail {
   color: #b91c1c;
-  background: rgba(244, 63, 94, 0.14);
-  border-color: rgba(244, 63, 94, 0.34);
 }
 
 .h5-log-meta-row {
@@ -2701,7 +2755,7 @@ html.dark .h5-model-loadMoreBtn {
 }
 
 .h5-log-token-layer {
-  margin-top: 12px;
+  margin-top: 10px;
 }
 
 .h5-log-token-stats {
@@ -2746,29 +2800,24 @@ html.dark .h5-model-loadMoreBtn {
   display: flex;
   justify-content: space-between;
   gap: 8px;
+  flex-wrap: wrap;
   font-size: 11px;
   color: #6b7280;
 }
 
 .h5-log-cost-chip {
   display: inline-flex;
-  align-items: center;
-  gap: 6px;
+  align-items: baseline;
+  gap: 4px;
   min-width: 0;
   max-width: 68%;
-  padding: 2px 8px;
-  border-radius: 999px;
-  border: 1px solid rgba(59, 130, 246, 0.32);
-  background: rgba(59, 130, 246, 0.12);
+  padding: 0;
   color: #1d4ed8;
+  font-size: 11px;
 }
 
 .h5-log-cost-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
-  background: #2563eb;
-  flex-shrink: 0;
+  display: none;
 }
 
 .h5-log-cost-value {
@@ -2776,6 +2825,7 @@ html.dark .h5-model-loadMoreBtn {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-size: 12px;
   font-weight: 700;
   color: #1e40af;
   font-variant-numeric: tabular-nums;
@@ -2783,23 +2833,22 @@ html.dark .h5-model-loadMoreBtn {
 
 .h5-log-group-chip {
   display: inline-flex;
-  align-items: center;
-  gap: 6px;
+  align-items: baseline;
+  gap: 4px;
   min-width: 0;
-  max-width: 52%;
-  padding: 2px 8px;
-  border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.32);
-  background: rgba(248, 250, 252, 0.86);
+  max-width: 100%;
+  padding: 0;
   color: #475569;
 }
 
 .h5-log-group-chip > span {
+  font-size: 11px;
   white-space: nowrap;
 }
 
 .h5-log-group-chip > strong {
   min-width: 0;
+  font-size: 11px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2807,12 +2856,13 @@ html.dark .h5-model-loadMoreBtn {
 }
 
 .h5-log-snippet {
-  margin-top: 10px;
+  margin-top: 8px;
   border-radius: 12px;
   border: 1px solid rgba(148, 163, 184, 0.24);
   background: rgba(241, 245, 249, 0.86);
-  padding: 8px 10px;
+  padding: 7px 9px;
   cursor: pointer;
+  touch-action: pan-y;
 }
 
 .h5-log-snippet-label {
@@ -2828,15 +2878,8 @@ html.dark .h5-model-loadMoreBtn {
   font-size: 12px;
   line-height: 1.4;
   color: #0f172a;
-  font-family:
-    ui-monospace,
-    SFMono-Regular,
-    Menlo,
-    Monaco,
-    Consolas,
-    'Liberation Mono',
-    'Courier New',
-    monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2852,22 +2895,21 @@ html.dark .h5-model-loadMoreBtn {
 }
 
 .h5-log-performance {
-  margin-top: 10px;
-  display: flex;
-  gap: 8px;
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 10px;
+  padding-top: 4px;
 }
 
 .h5-log-performance-item {
   display: inline-flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
-  gap: 8px;
+  gap: 6px;
   flex: 1;
   min-width: 0;
-  border-radius: 12px;
-  border: 1px solid rgba(148, 163, 184, 0.24);
-  background: rgba(255, 255, 255, 0.72);
-  padding: 7px 10px;
+  padding: 0;
 }
 
 .h5-log-performance-item span {
@@ -2878,20 +2920,13 @@ html.dark .h5-model-loadMoreBtn {
 }
 
 .h5-log-performance-item strong {
-  font-size: 13px;
+  font-size: 12px;
   color: #111827;
   min-width: 0;
   white-space: nowrap;
   text-align: right;
-  font-family:
-    ui-monospace,
-    SFMono-Regular,
-    Menlo,
-    Monaco,
-    Consolas,
-    'Liberation Mono',
-    'Courier New',
-    monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
 }
 
 .h5-log-error {
@@ -2935,6 +2970,25 @@ html.dark .h5-model-loadMoreBtn {
     border-bottom-color: rgba(148, 163, 184, 0.28);
     background: rgba(15, 23, 42, 0.9);
   }
+
+  html.dark .h5-usage-logs-toolbar {
+    border-bottom-color: rgba(148, 163, 184, 0.24);
+    background: rgba(15, 23, 42, 0.92);
+  }
+
+  html.dark .h5-usage-logs-stat {
+    border-color: rgba(99, 102, 241, 0.2);
+    background: rgba(30, 41, 59, 0.76);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+  }
+
+  html.dark .h5-usage-logs-stat-label {
+    color: rgba(148, 163, 184, 0.86);
+  }
+
+  html.dark .h5-usage-logs-stat-value {
+    color: rgba(241, 245, 249, 0.96);
+  }
 }
 
 html.dark .h5-model-card {
@@ -2949,9 +3003,16 @@ html.dark .h5-model-card {
 }
 
 html.dark .h5-model-card.is-per-token {
-  background:
-    radial-gradient(circle at 18% 10%, rgba(59, 130, 246, 0.1), transparent 62%),
-    radial-gradient(circle at 86% -18%, rgba(99, 102, 241, 0.08), transparent 64%),
+  background: radial-gradient(
+      circle at 18% 10%,
+      rgba(59, 130, 246, 0.1),
+      transparent 62%
+    ),
+    radial-gradient(
+      circle at 86% -18%,
+      rgba(99, 102, 241, 0.08),
+      transparent 64%
+    ),
     linear-gradient(
       170deg,
       rgba(17, 24, 60, 0.98) 0%,
@@ -2961,9 +3022,16 @@ html.dark .h5-model-card.is-per-token {
 }
 
 html.dark .h5-model-card.is-per-call {
-  background:
-    radial-gradient(circle at 18% 10%, rgba(245, 158, 11, 0.12), transparent 62%),
-    radial-gradient(circle at 86% -18%, rgba(251, 146, 60, 0.1), transparent 64%),
+  background: radial-gradient(
+      circle at 18% 10%,
+      rgba(245, 158, 11, 0.12),
+      transparent 62%
+    ),
+    radial-gradient(
+      circle at 86% -18%,
+      rgba(251, 146, 60, 0.1),
+      transparent 64%
+    ),
     linear-gradient(
       170deg,
       rgba(17, 24, 60, 0.98) 0%,
@@ -3077,9 +3145,16 @@ html.dark .h5-model-detail-sheet .semi-sidesheet-content {
 }
 
 html.dark .h5-model-detail-sheet-body {
-  background:
-    radial-gradient(circle at 15% -10%, rgba(59, 130, 246, 0.22), transparent 50%),
-    radial-gradient(circle at 85% -15%, rgba(99, 102, 241, 0.2), transparent 54%),
+  background: radial-gradient(
+      circle at 15% -10%,
+      rgba(59, 130, 246, 0.22),
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 85% -15%,
+      rgba(99, 102, 241, 0.2),
+      transparent 54%
+    ),
     rgba(15, 23, 42, 0.98);
 }
 
@@ -3319,7 +3394,6 @@ html.dark .h5-token-quotaCompact__v {
   color: rgba(226, 232, 240, 0.94);
 }
 
-
 html.dark .h5-token-card__iconBtn {
   border-color: rgba(99, 102, 241, 0.26);
   background: rgba(30, 41, 59, 0.72);
@@ -3346,9 +3420,16 @@ html.dark .h5-token-safety__text {
 }
 
 html.dark .h5-log-card-list::before {
-  background:
-    radial-gradient(circle at 12% 8%, rgba(59, 130, 246, 0.28), transparent 56%),
-    radial-gradient(circle at 88% 0%, rgba(148, 163, 184, 0.26), transparent 52%);
+  background: radial-gradient(
+      circle at 12% 8%,
+      rgba(59, 130, 246, 0.28),
+      transparent 56%
+    ),
+    radial-gradient(
+      circle at 88% 0%,
+      rgba(148, 163, 184, 0.26),
+      transparent 52%
+    );
 }
 
 html.dark .h5-log-card {
@@ -3361,6 +3442,10 @@ html.dark .h5-log-model-title {
   color: rgba(248, 250, 252, 0.96);
 }
 
+html.dark .h5-log-copy-btn {
+  color: rgba(203, 213, 225, 0.88);
+}
+
 html.dark .h5-log-time,
 html.dark .h5-log-token-foot,
 html.dark .h5-log-snippet-label,
@@ -3371,8 +3456,7 @@ html.dark .h5-log-load-more-tip {
 }
 
 html.dark .h5-log-group-pill {
-  border-color: rgba(148, 163, 184, 0.24);
-  background: rgba(30, 41, 59, 0.64);
+  color: rgba(203, 213, 225, 0.88);
 }
 
 html.dark .h5-log-group-pill > span {
@@ -3384,15 +3468,12 @@ html.dark .h5-log-group-pill > strong {
 }
 
 html.dark .h5-log-meta-pill,
-html.dark .h5-log-snippet,
-html.dark .h5-log-performance-item {
+html.dark .h5-log-snippet {
   border-color: rgba(148, 163, 184, 0.24);
   background: rgba(30, 41, 59, 0.64);
 }
 
 html.dark .h5-log-cost-chip {
-  border-color: rgba(96, 165, 250, 0.4);
-  background: rgba(37, 99, 235, 0.22);
   color: #bfdbfe;
 }
 
@@ -3405,8 +3486,6 @@ html.dark .h5-log-cost-value {
 }
 
 html.dark .h5-log-group-chip {
-  border-color: rgba(148, 163, 184, 0.3);
-  background: rgba(30, 41, 59, 0.72);
   color: rgba(203, 213, 225, 0.88);
 }
 
@@ -3436,20 +3515,45 @@ html.dark .h5-log-token-bar-container {
 
 html.dark .h5-log-status-chip.is-success {
   color: #6ee7b7;
-  background: rgba(16, 185, 129, 0.2);
-  border-color: rgba(16, 185, 129, 0.38);
 }
 
 html.dark .h5-log-status-chip.is-warning {
   color: #fcd34d;
-  background: rgba(245, 158, 11, 0.24);
-  border-color: rgba(245, 158, 11, 0.4);
 }
 
 html.dark .h5-log-status-chip.is-fail {
   color: #fda4af;
-  background: rgba(244, 63, 94, 0.2);
-  border-color: rgba(244, 63, 94, 0.38);
+}
+
+.h5-usage-logs-filter-sheet .semi-sidesheet-inner {
+  border-top-left-radius: 18px;
+  border-top-right-radius: 18px;
+}
+
+.h5-usage-logs-filter-sheet .semi-sidesheet-content {
+  background: #f8fafc;
+}
+
+.h5-usage-logs-filter-sheet-body {
+  min-height: 100%;
+  padding: 14px 12px calc(18px + env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, #f7f8fb 0%, #f8fafc 56%, #f8fafc 100%);
+}
+
+html.dark .h5-usage-logs-filter-sheet .semi-sidesheet-inner,
+html.dark .h5-usage-logs-filter-sheet .semi-sidesheet-content,
+html.dark .h5-usage-logs-filter-sheet-body {
+  background: radial-gradient(
+      circle at 18% -10%,
+      rgba(59, 130, 246, 0.22),
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 86% -12%,
+      rgba(99, 102, 241, 0.2),
+      transparent 54%
+    ),
+    rgba(15, 23, 42, 0.98);
 }
 
 html.dark .h5-log-error {
@@ -3515,9 +3619,16 @@ html.dark .h5-playground-topModelBtn {
   right: 0;
   height: 220px;
   pointer-events: none;
-  background:
-    radial-gradient(circle at 14% 16%, rgba(37, 99, 235, 0.16), transparent 56%),
-    radial-gradient(circle at 92% 10%, rgba(16, 185, 129, 0.12), transparent 52%);
+  background: radial-gradient(
+      circle at 14% 16%,
+      rgba(37, 99, 235, 0.16),
+      transparent 56%
+    ),
+    radial-gradient(
+      circle at 92% 10%,
+      rgba(16, 185, 129, 0.12),
+      transparent 52%
+    );
   z-index: 0;
 }
 
@@ -3612,8 +3723,11 @@ html.dark .h5-playground-topModelBtn {
 }
 
 html.dark .h5-playground-page::before {
-  background:
-    radial-gradient(circle at 14% 16%, rgba(59, 130, 246, 0.24), transparent 56%),
+  background: radial-gradient(
+      circle at 14% 16%,
+      rgba(59, 130, 246, 0.24),
+      transparent 56%
+    ),
     radial-gradient(circle at 92% 10%, rgba(34, 197, 94, 0.18), transparent 52%);
 }
 
@@ -3817,14 +3931,8 @@ html.dark .h5-playground-pickerItemTag {
   isolation: isolate;
   max-width: 760px;
   margin: 0 auto;
-  font-family:
-    -apple-system,
-    'SF Pro Text',
-    'PingFang SC',
-    'Hiragino Sans GB',
-    'Microsoft YaHei',
-    system-ui,
-    sans-serif;
+  font-family: -apple-system, 'SF Pro Text', 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', system-ui, sans-serif;
 }
 
 .h5-home-app-offset {
@@ -5144,8 +5252,7 @@ html.dark .h5-tag-expired {
   margin: 0 auto;
   min-height: 100dvh;
   background: linear-gradient(180deg, #f8fbff 0%, #f8fafc 36%, #f8fafc 100%);
-  font-family:
-    -apple-system, 'SF Pro Text', 'Helvetica Neue', 'PingFang SC',
+  font-family: -apple-system, 'SF Pro Text', 'Helvetica Neue', 'PingFang SC',
     'Microsoft YaHei', sans-serif;
   -webkit-font-smoothing: antialiased;
 }
@@ -5158,8 +5265,7 @@ html.dark .h5-tag-expired {
   margin: 0 auto;
   min-height: 100dvh;
   background: linear-gradient(180deg, #f7f8fb 0%, #f8fafc 55%, #f8fafc 100%);
-  font-family:
-    -apple-system, 'SF Pro Text', 'Helvetica Neue', 'PingFang SC',
+  font-family: -apple-system, 'SF Pro Text', 'Helvetica Neue', 'PingFang SC',
     'Microsoft YaHei', sans-serif;
   -webkit-font-smoothing: antialiased;
 }
@@ -5525,15 +5631,8 @@ html.dark .h5-tag-expired {
 
 .h5-personal-metaPill.is-time .h5-personal-metaPill__v,
 .h5-personal-metaPill.is-expire .h5-personal-metaPill__v {
-  font-family:
-    ui-monospace,
-    SFMono-Regular,
-    Menlo,
-    Monaco,
-    Consolas,
-    'Liberation Mono',
-    'Courier New',
-    monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
   letter-spacing: 0.01em;
 }
 
@@ -5603,15 +5702,8 @@ html.dark .h5-tag-expired {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-family:
-    ui-monospace,
-    SFMono-Regular,
-    Menlo,
-    Monaco,
-    Consolas,
-    'Liberation Mono',
-    'Courier New',
-    monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
 }
 
 .h5-personal-latestTokenCopy {
@@ -5717,7 +5809,10 @@ html.dark .h5-tag-expired {
   display: inline-flex;
   align-items: center;
   justify-content: flex-start;
-  transition: background 0.18s ease, border-color 0.18s ease, opacity 0.18s ease;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    opacity 0.18s ease;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -5811,9 +5906,16 @@ html.dark .h5-tag-expired {
 }
 
 html.dark .h5-personal-page {
-  background:
-    radial-gradient(circle at 18% -10%, rgba(59, 130, 246, 0.22), transparent 50%),
-    radial-gradient(circle at 86% -12%, rgba(99, 102, 241, 0.2), transparent 54%),
+  background: radial-gradient(
+      circle at 18% -10%,
+      rgba(59, 130, 246, 0.22),
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 86% -12%,
+      rgba(99, 102, 241, 0.2),
+      transparent 54%
+    ),
     rgba(15, 23, 42, 0.98);
 }
 
@@ -5927,8 +6029,12 @@ html.dark .h5-personal-metaPill.is-balance.is-unlimited {
   background: rgba(16, 185, 129, 0.12);
 }
 
-html.dark .h5-personal-metaPill.is-balance.is-unlimited .h5-personal-metaPill__k,
-html.dark .h5-personal-metaPill.is-balance.is-unlimited .h5-personal-metaPill__v {
+html.dark
+  .h5-personal-metaPill.is-balance.is-unlimited
+  .h5-personal-metaPill__k,
+html.dark
+  .h5-personal-metaPill.is-balance.is-unlimited
+  .h5-personal-metaPill__v {
   color: rgba(110, 231, 183, 0.98);
 }
 
@@ -5987,7 +6093,6 @@ html.dark .h5-personal-itemChevron {
   color: rgba(148, 163, 184, 0.7);
 }
 
-
 /* ==================== H5 创建/更新令牌页（iOS Grouped Table） ==================== */
 
 .h5-token-form-page {
@@ -5996,8 +6101,7 @@ html.dark .h5-personal-itemChevron {
   margin: 0 auto;
   min-height: 100dvh;
   background: linear-gradient(180deg, #f7f8fb 0%, #f8fafc 60%, #f8fafc 100%);
-  font-family:
-    -apple-system, 'SF Pro Text', 'Helvetica Neue', 'PingFang SC',
+  font-family: -apple-system, 'SF Pro Text', 'Helvetica Neue', 'PingFang SC',
     'Microsoft YaHei', sans-serif;
   -webkit-font-smoothing: antialiased;
 }
@@ -6395,9 +6499,16 @@ html.dark .h5-personal-itemChevron {
 }
 
 html.dark .h5-token-sheet-body {
-  background:
-    radial-gradient(circle at 18% -10%, rgba(59, 130, 246, 0.22), transparent 50%),
-    radial-gradient(circle at 86% -12%, rgba(99, 102, 241, 0.2), transparent 54%),
+  background: radial-gradient(
+      circle at 18% -10%,
+      rgba(59, 130, 246, 0.22),
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 86% -12%,
+      rgba(99, 102, 241, 0.2),
+      transparent 54%
+    ),
     rgba(15, 23, 42, 0.98);
 }
 
@@ -6407,9 +6518,16 @@ html.dark .h5-token-sheet-footer {
 }
 
 html.dark .h5-token-form-page {
-  background:
-    radial-gradient(circle at 18% -10%, rgba(59, 130, 246, 0.22), transparent 50%),
-    radial-gradient(circle at 86% -12%, rgba(99, 102, 241, 0.2), transparent 54%),
+  background: radial-gradient(
+      circle at 18% -10%,
+      rgba(59, 130, 246, 0.22),
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 86% -12%,
+      rgba(99, 102, 241, 0.2),
+      transparent 54%
+    ),
     rgba(15, 23, 42, 0.98);
 }
 
@@ -6664,7 +6782,9 @@ html.dark .h5-ios-hint {
   border-radius: 10px;
   background: #f8fafc;
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -6796,7 +6916,10 @@ html.dark .h5-ios-hint {
   font-weight: 600;
   color: #1e293b;
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  transition:
+    border-color 0.15s,
+    background 0.15s,
+    color 0.15s;
   white-space: nowrap;
   -webkit-tap-highlight-color: transparent;
 }

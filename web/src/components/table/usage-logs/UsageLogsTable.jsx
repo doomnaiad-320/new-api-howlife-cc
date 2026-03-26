@@ -18,18 +18,13 @@ For commercial licensing, please contact support@quantumnous.com
 */
 
 import React, { useEffect, useMemo, useRef } from 'react';
-import {
-  Button,
-  Card,
-  Descriptions,
-  Empty,
-  Skeleton,
-} from '@douyinfe/semi-ui';
+import { Card, Descriptions, Empty, Skeleton } from '@douyinfe/semi-ui';
 import CardTable from '../../common/ui/CardTable';
 import {
   IllustrationNoResult,
   IllustrationNoResultDark,
 } from '@douyinfe/semi-illustrations';
+import { Copy } from 'lucide-react';
 import { getLogsColumns } from './UsageLogsColumnDefs';
 import { getLogOther, renderQuota } from '../../../helpers';
 import { useIsMobile } from '../../../hooks/common/useIsMobile';
@@ -154,20 +149,50 @@ const LogsTable = (logsData) => {
     const statusCode = getStatusCodeFromRecord(record, other);
     if (statusCode !== null) {
       if (statusCode >= 200 && statusCode < 300) {
-        return { text: t('成功'), className: 'is-success', isFailure: false, statusCode };
+        return {
+          text: t('成功'),
+          className: 'is-success',
+          isFailure: false,
+          statusCode,
+        };
       }
       if (statusCode >= 400) {
-        return { text: t('失败'), className: 'is-fail', isFailure: true, statusCode };
+        return {
+          text: t('失败'),
+          className: 'is-fail',
+          isFailure: true,
+          statusCode,
+        };
       }
-      return { text: t('其他'), className: 'is-warning', isFailure: false, statusCode };
+      return {
+        text: t('其他'),
+        className: 'is-warning',
+        isFailure: false,
+        statusCode,
+      };
     }
     if (record.type === 5) {
-      return { text: t('失败'), className: 'is-fail', isFailure: true, statusCode: null };
+      return {
+        text: t('失败'),
+        className: 'is-fail',
+        isFailure: true,
+        statusCode: null,
+      };
     }
     if (record.type === 2) {
-      return { text: t('成功'), className: 'is-success', isFailure: false, statusCode: null };
+      return {
+        text: t('成功'),
+        className: 'is-success',
+        isFailure: false,
+        statusCode: null,
+      };
     }
-    return { text: t('其他'), className: 'is-warning', isFailure: false, statusCode: null };
+    return {
+      text: t('其他'),
+      className: 'is-warning',
+      isFailure: false,
+      statusCode: null,
+    };
   };
 
   const getFailureReason = (record, other, statusMeta) => {
@@ -274,13 +299,8 @@ const LogsTable = (logsData) => {
           const completionTokens = toPositiveNumber(record.completion_tokens);
           const totalTokens = promptTokens + completionTokens;
           const inputBarWidth =
-            totalTokens > 0
-              ? (promptTokens / totalTokens) * 100
-              : 50;
-          const outputBarWidth =
-            totalTokens > 0
-              ? 100 - inputBarWidth
-              : 50;
+            totalTokens > 0 ? (promptTokens / totalTokens) * 100 : 50;
+          const outputBarWidth = totalTokens > 0 ? 100 - inputBarWidth : 50;
           const firstTokenSeconds =
             toPositiveNumber(other.frt) > 0
               ? `${(toPositiveNumber(other.frt) / 1000).toFixed(2)}s`
@@ -291,14 +311,21 @@ const LogsTable = (logsData) => {
           return (
             <Card key={record.key} className='h5-log-card !rounded-2xl'>
               <div className='h5-log-header'>
-                <Button
-                  theme='borderless'
-                  size='small'
-                  className='h5-log-model-btn'
-                  onClick={(event) => copyText(event, record.model_name || '-')}
-                >
-                  <span className='h5-log-model-title'>{record.model_name || '-'}</span>
-                </Button>
+                <div className='h5-log-model-main'>
+                  <span className='h5-log-model-title'>
+                    {record.model_name || '-'}
+                  </span>
+                  <button
+                    type='button'
+                    className='h5-log-copy-btn'
+                    onClick={(event) =>
+                      copyText(event, record.model_name || '-')
+                    }
+                    aria-label={t('复制模型名称')}
+                  >
+                    <Copy size={14} />
+                  </button>
+                </div>
                 <span className={`h5-log-status-chip ${statusMeta.className}`}>
                   {statusMeta.statusCode
                     ? `${statusMeta.text} ${statusMeta.statusCode}`
@@ -306,7 +333,9 @@ const LogsTable = (logsData) => {
                 </span>
               </div>
               <div className='h5-log-time-row'>
-                <div className='h5-log-time'>{record.timestamp2string || '-'}</div>
+                <div className='h5-log-time'>
+                  {record.timestamp2string || '-'}
+                </div>
                 {!statusMeta.isFailure ? (
                   <span className='h5-log-cost-chip'>
                     <span className='h5-log-cost-dot' />

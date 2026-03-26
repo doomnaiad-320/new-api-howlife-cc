@@ -38,11 +38,16 @@ const LogsFilters = ({
   tokenOptionsLoading,
   t,
 }) => {
+  const handleSubmit = async () => {
+    await refresh();
+    onQuery?.();
+  };
+
   return (
     <Form
       initValues={formInitValues}
       getFormApi={(api) => setFormApi(api)}
-      onSubmit={refresh}
+      onSubmit={handleSubmit}
       allowEmpty={true}
       autoComplete='off'
       layout='vertical'
@@ -154,8 +159,9 @@ const LogsFilters = ({
               pure
               onChange={() => {
                 // 延迟执行搜索，让表单值先更新
-                setTimeout(() => {
-                  refresh();
+                setTimeout(async () => {
+                  await refresh();
+                  onQuery?.();
                 }, 0);
               }}
               size='small'
@@ -175,10 +181,6 @@ const LogsFilters = ({
               htmlType='submit'
               loading={loading}
               size='small'
-              onClick={() => {
-                // Auto-collapse CardPro mobile actions after user triggers query.
-                onQuery?.();
-              }}
             >
               {t('查询')}
             </Button>
@@ -188,8 +190,9 @@ const LogsFilters = ({
                 if (formApi) {
                   formApi.reset();
                   setLogType(0);
-                  setTimeout(() => {
-                    refresh();
+                  setTimeout(async () => {
+                    await refresh();
+                    onQuery?.();
                   }, 100);
                 }
               }}
@@ -199,7 +202,10 @@ const LogsFilters = ({
             </Button>
             <Button
               type='tertiary'
-              onClick={() => setShowColumnSelector(true)}
+              onClick={() => {
+                setShowColumnSelector(true);
+                onQuery?.();
+              }}
               size='small'
             >
               {t('列设置')}

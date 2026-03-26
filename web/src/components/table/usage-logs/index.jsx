@@ -17,7 +17,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useCallback, useState } from 'react';
+import React, { useState } from 'react';
+import { SideSheet } from '@douyinfe/semi-ui';
 import CardPro from '../../common/ui/CardPro';
 import LogsTable from './UsageLogsTable';
 import LogsActions from './UsageLogsActions';
@@ -32,12 +33,42 @@ import { createCardProPagination } from '../../../helpers/utils';
 const LogsPage = () => {
   const logsData = useLogsData();
   const isMobile = useIsMobile();
-  const [mobileActionsCollapseKey, setMobileActionsCollapseKey] = useState(0);
+  const [mobileFiltersVisible, setMobileFiltersVisible] = useState(false);
 
-  const collapseMobileActions = useCallback(() => {
-    // Bump key to trigger CardPro effect.
-    setMobileActionsCollapseKey((prev) => prev + 1);
-  }, []);
+  if (isMobile) {
+    return (
+      <>
+        <ColumnSelectorModal {...logsData} />
+        <UserInfoModal {...logsData} />
+        <ChannelAffinityUsageCacheModal {...logsData} />
+
+        <div className='h5-usage-logs-shell'>
+          <LogsActions
+            {...logsData}
+            onOpenMobileFilters={() => setMobileFiltersVisible(true)}
+          />
+          <LogsTable {...logsData} />
+        </div>
+
+        <SideSheet
+          title={logsData.t('筛选日志')}
+          visible={mobileFiltersVisible}
+          placement='bottom'
+          height={560}
+          bodyStyle={{ padding: 0 }}
+          onCancel={() => setMobileFiltersVisible(false)}
+          className='h5-usage-logs-filter-sheet'
+        >
+          <div className='h5-usage-logs-filter-sheet-body'>
+            <LogsFilters
+              {...logsData}
+              onQuery={() => setMobileFiltersVisible(false)}
+            />
+          </div>
+        </SideSheet>
+      </>
+    );
+  }
 
   return (
     <>
@@ -49,10 +80,9 @@ const LogsPage = () => {
       {/* Main Content */}
       <CardPro
         type='type2'
-        className={isMobile ? 'h5-usage-logs-card' : ''}
+        className=''
         statsArea={<LogsActions {...logsData} />}
-        searchArea={<LogsFilters {...logsData} onQuery={collapseMobileActions} />}
-        mobileActionsCollapseKey={mobileActionsCollapseKey}
+        searchArea={<LogsFilters {...logsData} />}
         paginationArea={
           isMobile
             ? null

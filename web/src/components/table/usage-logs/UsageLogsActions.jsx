@@ -18,10 +18,12 @@ For commercial licensing, please contact support@quantumnous.com
 */
 
 import React from 'react';
-import { Tag, Skeleton } from '@douyinfe/semi-ui';
+import { Button, Tag, Skeleton } from '@douyinfe/semi-ui';
+import { SlidersHorizontal } from 'lucide-react';
 import { renderNumber, renderQuota } from '../../../helpers';
 import CompactModeToggle from '../../common/ui/CompactModeToggle';
 import { useMinimumLoadingTime } from '../../../hooks/common/useMinimumLoadingTime';
+import { useIsMobile } from '../../../hooks/common/useIsMobile';
 
 const LogsActions = ({
   stat,
@@ -29,10 +31,12 @@ const LogsActions = ({
   showStat,
   compactMode,
   setCompactMode,
+  onOpenMobileFilters,
   t,
 }) => {
   const showSkeleton = useMinimumLoadingTime(loadingStat);
   const needSkeleton = !showStat || showSkeleton;
+  const isMobile = useIsMobile();
 
   const placeholder = (
     <div className='flex flex-wrap gap-2'>
@@ -44,6 +48,57 @@ const LogsActions = ({
       <Skeleton.Title style={{ width: 92, height: 21, borderRadius: 6 }} />
     </div>
   );
+
+  if (isMobile) {
+    const mobileStats = [
+      { key: 'quota', label: t('消耗额度'), value: renderQuota(stat.quota) },
+      { key: 'rpm', label: 'RPM', value: renderNumber(stat.rpm ?? 0) },
+      { key: 'tpm', label: 'TPM', value: renderNumber(stat.tpm ?? 0) },
+      {
+        key: 'request',
+        label: t('请求'),
+        value: renderNumber(stat.request_count ?? 0),
+      },
+      {
+        key: 'success',
+        label: t('成功'),
+        value: renderNumber(stat.success_count ?? 0),
+      },
+      {
+        key: 'failure',
+        label: t('失败'),
+        value: renderNumber(stat.failure_count ?? 0),
+      },
+    ];
+
+    return (
+      <div className='h5-usage-logs-toolbar'>
+        <Skeleton loading={needSkeleton} active placeholder={placeholder}>
+          <div className='h5-usage-logs-summary'>
+            {mobileStats.map((item) => (
+              <div key={item.key} className='h5-usage-logs-stat'>
+                <span className='h5-usage-logs-stat-label'>{item.label}</span>
+                <strong className='h5-usage-logs-stat-value'>
+                  {item.value}
+                </strong>
+              </div>
+            ))}
+          </div>
+        </Skeleton>
+
+        <Button
+          type='tertiary'
+          theme='outline'
+          size='small'
+          icon={<SlidersHorizontal size={14} />}
+          className='h5-usage-logs-filter-trigger'
+          onClick={onOpenMobileFilters}
+        >
+          {t('筛选与列设置')}
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className='flex flex-col md:flex-row justify-between items-start md:items-center gap-2 w-full'>
