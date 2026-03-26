@@ -43,6 +43,15 @@ import { useTableCompactMode } from '../common/useTableCompactMode';
 export const useLogsData = () => {
   const { t } = useTranslation();
 
+  const normalizeLogStat = (data = {}) => ({
+    quota: Number(data?.quota) || 0,
+    rpm: Number(data?.rpm) || 0,
+    tpm: Number(data?.tpm) || 0,
+    request_count: Number(data?.request_count) || 0,
+    success_count: Number(data?.success_count) || 0,
+    failure_count: Number(data?.failure_count) || 0,
+  });
+
   // Define column keys for selection
   const COLUMN_KEYS = {
     TIME: 'time',
@@ -70,6 +79,8 @@ export const useLogsData = () => {
   const [hasMoreLogs, setHasMoreLogs] = useState(false);
   const loadingMoreRef = useRef(false);
   const [loadingStat, setLoadingStat] = useState(false);
+  const [tokenOptions, setTokenOptions] = useState([]);
+  const [tokenOptionsLoading, setTokenOptionsLoading] = useState(false);
   const [activePage, setActivePage] = useState(1);
   const [logCount, setLogCount] = useState(0);
   const [pageSize, setPageSize] = useState(ITEMS_PER_PAGE);
@@ -83,10 +94,7 @@ export const useLogsData = () => {
     : 'logs-table-columns-user';
 
   // Statistics state
-  const [stat, setStat] = useState({
-    quota: 0,
-    token: 0,
-  });
+  const [stat, setStat] = useState(() => normalizeLogStat());
 
   // Form state
   const [formApi, setFormApi] = useState(null);
@@ -257,7 +265,7 @@ export const useLogsData = () => {
     let res = await API.get(url);
     const { success, message, data } = res.data;
     if (success) {
-      setStat(data);
+      setStat(normalizeLogStat(data));
     } else {
       showError(message);
     }
@@ -282,7 +290,7 @@ export const useLogsData = () => {
     let res = await API.get(url);
     const { success, message, data } = res.data;
     if (success) {
-      setStat(data);
+      setStat(normalizeLogStat(data));
     } else {
       showError(message);
     }
@@ -326,6 +334,43 @@ export const useLogsData = () => {
       key_fp: a.key_fp || '',
     });
     setShowChannelAffinityUsageCacheModal(true);
+  };
+
+  const loadTokenOptions = async () => {
+    if (isAdminUser) {
+      setTokenOptions([]);
+      return;
+    }
+
+    setTokenOptionsLoading(true);
+    try {
+      const res = await API.get('/api/token/?p=1&size=1000');
+      const { success, message, data } = res.data || {};
+      if (!success) {
+        showError(message || t('加载令牌失败'));
+        return;
+      }
+
+      const items = Array.isArray(data?.items) ? data.items : [];
+      const seenNames = new Set();
+      const options = [];
+
+      items.forEach((token) => {
+        const tokenName = String(token?.name || '').trim();
+        if (!tokenName || seenNames.has(tokenName)) {
+          return;
+        }
+        seenNames.add(tokenName);
+        options.push({
+          label: tokenName,
+          value: tokenName,
+        });
+      });
+
+      setTokenOptions(options);
+    } finally {
+      setTokenOptionsLoading(false);
+    }
   };
 
   // Format logs data
@@ -764,6 +809,12 @@ export const useLogsData = () => {
       });
   }, []);
 
+  useEffect(() => {
+    loadTokenOptions().catch((reason) => {
+      showError(reason);
+    });
+  }, [isAdminUser]);
+
   // Initialize statistics when formApi is available
   useEffect(() => {
     if (formApi) {
@@ -787,6 +838,8 @@ export const useLogsData = () => {
     loadingMore,
     hasMoreLogs,
     loadingStat,
+    tokenOptions,
+    tokenOptionsLoading,
     activePage,
     logCount,
     pageSize,

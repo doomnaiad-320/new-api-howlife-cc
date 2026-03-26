@@ -18,8 +18,8 @@ For commercial licensing, please contact support@quantumnous.com
 */
 
 import React from 'react';
-import { Tag, Space, Skeleton } from '@douyinfe/semi-ui';
-import { renderQuota } from '../../../helpers';
+import { Tag, Skeleton } from '@douyinfe/semi-ui';
+import { renderNumber, renderQuota } from '../../../helpers';
 import CompactModeToggle from '../../common/ui/CompactModeToggle';
 import { useMinimumLoadingTime } from '../../../hooks/common/useMinimumLoadingTime';
 
@@ -35,17 +35,20 @@ const LogsActions = ({
   const needSkeleton = !showStat || showSkeleton;
 
   const placeholder = (
-    <Space>
+    <div className='flex flex-wrap gap-2'>
       <Skeleton.Title style={{ width: 108, height: 21, borderRadius: 6 }} />
       <Skeleton.Title style={{ width: 65, height: 21, borderRadius: 6 }} />
       <Skeleton.Title style={{ width: 64, height: 21, borderRadius: 6 }} />
-    </Space>
+      <Skeleton.Title style={{ width: 92, height: 21, borderRadius: 6 }} />
+      <Skeleton.Title style={{ width: 92, height: 21, borderRadius: 6 }} />
+      <Skeleton.Title style={{ width: 92, height: 21, borderRadius: 6 }} />
+    </div>
   );
 
   return (
     <div className='flex flex-col md:flex-row justify-between items-start md:items-center gap-2 w-full'>
       <Skeleton loading={needSkeleton} active placeholder={placeholder}>
-        <Space>
+        <div className='flex flex-wrap gap-2 items-center'>
           <Tag
             color='blue'
             style={{
@@ -80,7 +83,40 @@ const LogsActions = ({
           >
             TPM: {stat.tpm}
           </Tag>
-        </Space>
+          <Tag
+            color='cyan'
+            style={{
+              fontWeight: 500,
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+              padding: 13,
+            }}
+            className='!rounded-lg'
+          >
+            {t('请求')}: {renderNumber(stat.request_count ?? 0)}
+          </Tag>
+          <Tag
+            color='green'
+            style={{
+              fontWeight: 500,
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+              padding: 13,
+            }}
+            className='!rounded-lg'
+          >
+            {t('成功')}: {renderNumber(stat.success_count ?? 0)}
+          </Tag>
+          <Tag
+            color='red'
+            style={{
+              fontWeight: 500,
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+              padding: 13,
+            }}
+            className='!rounded-lg'
+          >
+            {t('失败')}: {renderNumber(stat.failure_count ?? 0)}
+          </Tag>
+        </div>
       </Skeleton>
 
       <CompactModeToggle

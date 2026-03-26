@@ -22,6 +22,7 @@ import { Button, Form } from '@douyinfe/semi-ui';
 import { IconSearch } from '@douyinfe/semi-icons';
 
 import { DATE_RANGE_PRESETS } from '../../../constants/console.constants';
+import { selectFilter } from '../../../helpers';
 
 const LogsFilters = ({
   formInitValues,
@@ -33,6 +34,8 @@ const LogsFilters = ({
   setLogType,
   loading,
   isAdminUser,
+  tokenOptions,
+  tokenOptionsLoading,
   t,
 }) => {
   return (
@@ -67,14 +70,28 @@ const LogsFilters = ({
           </div>
 
           {/* 其他搜索字段 */}
-          <Form.Input
-            field='token_name'
-            prefix={<IconSearch />}
-            placeholder={t('令牌名称')}
-            showClear
-            pure
-            size='small'
-          />
+          {isAdminUser ? (
+            <Form.Input
+              field='token_name'
+              prefix={<IconSearch />}
+              placeholder={t('令牌名称')}
+              showClear
+              pure
+              size='small'
+            />
+          ) : (
+            <Form.Select
+              field='token_name'
+              placeholder={t('选择令牌')}
+              optionList={tokenOptions}
+              filter={selectFilter}
+              showClear
+              pure
+              searchPosition='dropdown'
+              size='small'
+              loading={tokenOptionsLoading}
+            />
+          )}
 
           <Form.Input
             field='model_name'
