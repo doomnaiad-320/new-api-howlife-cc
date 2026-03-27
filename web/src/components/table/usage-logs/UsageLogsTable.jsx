@@ -18,7 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 
 import React, { useEffect, useMemo, useRef } from 'react';
-import { Card, Descriptions, Empty, Skeleton } from '@douyinfe/semi-ui';
+import { Descriptions, Empty, Skeleton } from '@douyinfe/semi-ui';
 import CardTable from '../../common/ui/CardTable';
 import {
   IllustrationNoResult,
@@ -26,7 +26,7 @@ import {
 } from '@douyinfe/semi-illustrations';
 import { Copy } from 'lucide-react';
 import { getLogsColumns } from './UsageLogsColumnDefs';
-import { getLogOther, renderQuota } from '../../../helpers';
+import { getLogOther, renderQuota, stringToColor } from '../../../helpers';
 import { useIsMobile } from '../../../hooks/common/useIsMobile';
 
 const LogsTable = (logsData) => {
@@ -236,6 +236,99 @@ const LogsTable = (logsData) => {
     return candidates.find((item) => item && item.trim()) || '';
   };
 
+  const formatDuration = (value) => {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      return '-';
+    }
+    if (Number.isInteger(parsed)) {
+      return `${parsed}s`;
+    }
+    return `${parsed.toFixed(2).replace(/\.?0+$/, '')}s`;
+  };
+
+  const formatRatioText = (value) => {
+    if (value === undefined || value === null || value === '') {
+      return 'x1';
+    }
+
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      if (value <= 0) {
+        return 'x1';
+      }
+      const normalized = Number.isInteger(value)
+        ? `${value}`
+        : value.toFixed(2).replace(/\.?0+$/, '');
+      return `x${normalized}`;
+    }
+
+    const text = String(value).trim().replace(/^x\s*/i, '');
+    if (!text) {
+      return 'x1';
+    }
+
+    const parsed = Number(text);
+    if (Number.isFinite(parsed)) {
+      if (parsed <= 0) {
+        return 'x1';
+      }
+      const normalized = Number.isInteger(parsed)
+        ? `${parsed}`
+        : parsed.toFixed(2).replace(/\.?0+$/, '');
+      return `x${normalized}`;
+    }
+
+    return `x${text}`;
+  };
+
+  const formatCompactCount = (value) => {
+    const count = Math.round(toPositiveNumber(value));
+    if (count <= 0) {
+      return '0';
+    }
+    if (count >= 10000) {
+      return `${(count / 10000).toFixed(1).replace(/\.0$/, '')}万`;
+    }
+    return count.toLocaleString();
+  };
+
+  const getMobileModelTitleColor = (modelName) => {
+    if (!modelName) {
+      return 'var(--semi-color-text-0)';
+    }
+    const colorName = stringToColor(modelName);
+    return `rgba(var(--semi-${colorName}-7), 1)`;
+  };
+
+  const createMobileMetricToneStyles = (colorName) => {
+    return {
+      labelStyle: {
+        color: `rgba(var(--semi-${colorName}-5), 1)`,
+      },
+      valueStyle: {
+        color: `rgba(var(--semi-${colorName}-7), 1)`,
+      },
+    };
+  };
+
+  const getMobileTimingMetricStyles = (
+    value,
+    warningThreshold,
+    dangerThreshold,
+  ) => {
+    const timing = Number(value);
+    if (!Number.isFinite(timing) || timing <= 0) {
+      return {};
+    }
+    if (timing < warningThreshold) {
+      return createMobileMetricToneStyles('green');
+    }
+    if (timing < dangerThreshold) {
+      return createMobileMetricToneStyles('orange');
+    }
+    return createMobileMetricToneStyles('red');
+  };
+
   useEffect(() => {
     if (!isMobile || !h5LoadMoreRef.current) {
       return;
@@ -265,12 +358,12 @@ const LogsTable = (logsData) => {
       return (
         <div className='h5-log-card-list'>
           {[1, 2, 3].map((item) => (
-            <Card key={item} className='h5-log-card !rounded-2xl'>
+            <div key={item} className='h5-log-card h5-log-card--skeleton'>
               <Skeleton
                 placeholder={<Skeleton.Paragraph rows={4} />}
                 loading={true}
               />
-            </Card>
+            </div>
           ))}
         </div>
       );
@@ -297,127 +390,144 @@ const LogsTable = (logsData) => {
           const failureReason = getFailureReason(record, other, statusMeta);
           const promptTokens = toPositiveNumber(record.prompt_tokens);
           const completionTokens = toPositiveNumber(record.completion_tokens);
-          const totalTokens = promptTokens + completionTokens;
-          const inputBarWidth =
-            totalTokens > 0 ? (promptTokens / totalTokens) * 100 : 50;
-          const outputBarWidth = totalTokens > 0 ? 100 - inputBarWidth : 50;
+          const firstTokenLatency = toPositiveNumber(other.frt);
           const firstTokenSeconds =
-            toPositiveNumber(other.frt) > 0
-              ? `${(toPositiveNumber(other.frt) / 1000).toFixed(2)}s`
+            firstTokenLatency > 0
+              ? `${(firstTokenLatency / 1000).toFixed(2)}s`
               : '-';
           const promptSnippet = getPromptSnippet(record, other, failureReason);
           const groupValue = record.group || other.group || '-';
+          const ratioValue = formatRatioText(
+            other?.user_group_ratio ?? other?.group_ratio,
+          );
+          const metrics = [
+            {
+              key: 'use_time',
+              label: t('耗时'),
+              value: formatDuration(record.use_time),
+              ...getMobileTimingMetricStyles(record.use_time, 101, 300),
+            },
+            {
+              key: 'first_token',
+              label: t('首字'),
+              value: firstTokenSeconds,
+              ...getMobileTimingMetricStyles(firstTokenLatency / 1000, 3, 10),
+            },
+            {
+              key: 'input',
+              label: t('输入'),
+              value: formatCompactCount(promptTokens),
+            },
+            {
+              key: 'output',
+              label: t('输出'),
+              value: formatCompactCount(completionTokens),
+            },
+          ];
+          const detailItems = expandData[record.key] || [];
+          const detailSnippet =
+            promptSnippet && promptSnippet !== failureReason
+              ? promptSnippet
+              : '';
+          const hasDetails =
+            detailItems.length > 0 ||
+            Boolean(failureReason) ||
+            Boolean(promptSnippet);
 
           return (
-            <Card key={record.key} className='h5-log-card !rounded-2xl'>
-              <div className='h5-log-header'>
-                <div className='h5-log-model-main'>
-                  <span className='h5-log-model-title'>
-                    {record.model_name || '-'}
-                  </span>
-                  <button
-                    type='button'
-                    className='h5-log-copy-btn'
-                    onClick={(event) =>
-                      copyText(event, record.model_name || '-')
-                    }
-                    aria-label={t('复制模型名称')}
-                  >
-                    <Copy size={14} />
-                  </button>
+            <article key={record.key} className='h5-log-card'>
+              <div className='h5-log-top'>
+                <div className='h5-log-main'>
+                  <div className='h5-log-header'>
+                    <div className='h5-log-model-main'>
+                      <span
+                        className='h5-log-model-title'
+                        style={{
+                          color: getMobileModelTitleColor(record.model_name),
+                        }}
+                      >
+                        {record.model_name || '-'}
+                      </span>
+                      <button
+                        type='button'
+                        className='h5-log-copy-btn'
+                        onClick={(event) =>
+                          copyText(event, record.model_name || '-')
+                        }
+                        aria-label={t('复制模型名称')}
+                      >
+                        <Copy size={12} />
+                      </button>
+                    </div>
+                    <span
+                      className={`h5-log-status-chip ${statusMeta.className}`}
+                    >
+                      {statusMeta.text}
+                    </span>
+                  </div>
+                  <div className='h5-log-time'>
+                    {record.timestamp2string || '-'}
+                  </div>
                 </div>
-                <span className={`h5-log-status-chip ${statusMeta.className}`}>
-                  {statusMeta.statusCode
-                    ? `${statusMeta.text} ${statusMeta.statusCode}`
-                    : statusMeta.text}
-                </span>
               </div>
-              <div className='h5-log-time-row'>
-                <div className='h5-log-time'>
-                  {record.timestamp2string || '-'}
-                </div>
-                {!statusMeta.isFailure ? (
-                  <span className='h5-log-cost-chip'>
-                    <span className='h5-log-cost-dot' />
-                    <span>{t('消耗')}</span>
-                    <strong className='h5-log-cost-value'>
-                      {renderQuota(record.quota || 0, 6)}
-                    </strong>
-                  </span>
-                ) : (
-                  <span className='h5-log-group-pill' title={groupValue}>
+              <div className='h5-log-meta-inline-row'>
+                <div className='h5-log-meta-inline-list'>
+                  <span className='h5-log-meta-inline-item' title={groupValue}>
                     <span>{t('分组')}</span>
                     <strong>{groupValue}</strong>
                   </span>
-                )}
+                  <span className='h5-log-meta-inline-item'>
+                    <span>{t('倍率')}</span>
+                    <strong>{ratioValue}</strong>
+                  </span>
+                </div>
+                <span className='h5-log-cost-inline'>
+                  <span>{t('消耗')}</span>
+                  <strong>{renderQuota(record.quota || 0, 2)}</strong>
+                </span>
+              </div>
+              <div className='h5-log-divider' />
+              <div className='h5-log-metrics-grid'>
+                {metrics.map((item) => (
+                  <div key={item.key} className='h5-log-metric-item'>
+                    <span style={item.labelStyle}>{item.label}</span>
+                    <strong style={item.valueStyle}>{item.value}</strong>
+                  </div>
+                ))}
               </div>
 
-              {!statusMeta.isFailure ? (
-                <div className='h5-log-token-layer'>
-                  <div className='h5-log-token-stats'>
-                    <div className='h5-log-token-item'>
-                      <span>{t('Input')}</span>
-                      <strong>{promptTokens}</strong>
-                    </div>
-                    <div className='h5-log-token-item'>
-                      <span>{t('Output')}</span>
-                      <strong>{completionTokens}</strong>
-                    </div>
-                  </div>
-                  <div className='h5-log-token-bar-container'>
-                    <div
-                      className='h5-log-token-bar-input'
-                      style={{ width: `${inputBarWidth}%` }}
-                    />
-                    <div
-                      className='h5-log-token-bar-output'
-                      style={{ width: `${outputBarWidth}%` }}
-                    />
-                  </div>
-                  <div className='h5-log-token-foot'>
-                    <span>
-                      {t('总 Tokens')}: {totalTokens}
-                    </span>
-                    <span className='h5-log-group-chip' title={groupValue}>
-                      <span>{t('分组')}</span>
-                      <strong>{groupValue}</strong>
-                    </span>
-                  </div>
-                </div>
-              ) : null}
-
-              {promptSnippet ? (
-                <div
-                  className={`h5-log-snippet ${statusMeta.isFailure ? 'h5-log-snippet--warning' : ''}`}
-                  onClick={(event) => copyText(event, promptSnippet)}
-                >
-                  <span className='h5-log-snippet-label'>{t('请求片段')}</span>
-                  <code>{promptSnippet}</code>
-                </div>
-              ) : null}
-
-              {!statusMeta.isFailure ? (
-                <div className='h5-log-performance'>
-                  <div className='h5-log-performance-item'>
-                    <span>{t('耗时')}</span>
-                    <strong>{toPositiveNumber(record.use_time)}s</strong>
-                  </div>
-                  <div className='h5-log-performance-item'>
-                    <span>{t('首字用时')}</span>
-                    <strong>{firstTokenSeconds}</strong>
-                  </div>
-                </div>
-              ) : null}
-
-              {!statusMeta.isFailure &&
-              expandData[record.key] &&
-              expandData[record.key].length > 0 ? (
+              {hasDetails ? (
                 <details className='h5-log-details'>
                   <summary>{t('查看详情')}</summary>
-                  <Descriptions data={expandData[record.key]} />
+                  <div className='h5-log-details-panel'>
+                    {statusMeta.isFailure && failureReason ? (
+                      <div className='h5-log-error'>
+                        <div className='h5-log-error-title'>
+                          {t('失败原因')}
+                        </div>
+                        <div className='h5-log-error-content'>
+                          {failureReason}
+                        </div>
+                      </div>
+                    ) : null}
+                    {detailSnippet ? (
+                      <div
+                        className={`h5-log-snippet ${statusMeta.isFailure ? 'h5-log-snippet--warning' : ''}`}
+                        onClick={(event) => copyText(event, detailSnippet)}
+                      >
+                        <span className='h5-log-snippet-label'>
+                          {t('请求片段')}
+                        </span>
+                        <code>{detailSnippet}</code>
+                      </div>
+                    ) : null}
+                    {detailItems.length > 0 ? (
+                      <Descriptions data={detailItems} />
+                    ) : null}
+                  </div>
                 </details>
               ) : null}
-            </Card>
+            </article>
           );
         })}
         <div ref={h5LoadMoreRef} className='h5-log-load-more-anchor' />

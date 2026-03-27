@@ -220,7 +220,10 @@ export const useLogsData = () => {
 
   // 获取表单值的辅助函数，确保所有值都是字符串
   const getFormValues = () => {
-    const formValues = formApi ? formApi.getValues() : {};
+    const formValues = {
+      ...formInitValues,
+      ...(formApi?.getValues?.() || {}),
+    };
 
     let start_timestamp = timestamp2string(getTodayStartTimestamp());
     let end_timestamp = timestamp2string(now.getTime() / 1000 + 3600);
@@ -301,13 +304,18 @@ export const useLogsData = () => {
       return;
     }
     setLoadingStat(true);
-    if (isAdminUser) {
-      await getLogStat();
-    } else {
-      await getLogSelfStat();
+    try {
+      if (isAdminUser) {
+        await getLogStat();
+      } else {
+        await getLogSelfStat();
+      }
+    } catch (error) {
+      showError(error?.message || t('加载统计信息失败'));
+    } finally {
+      setShowStat(true);
+      setLoadingStat(false);
     }
-    setShowStat(true);
-    setLoadingStat(false);
   };
 
   // User info function
@@ -783,8 +791,7 @@ export const useLogsData = () => {
   // Refresh function
   const refresh = async () => {
     setActivePage(1);
-    handleEyeClick();
-    await loadLogs(1, pageSize);
+    await Promise.all([handleEyeClick(), loadLogs(1, pageSize)]);
   };
 
   // Copy text function
@@ -802,7 +809,7 @@ export const useLogsData = () => {
     const localPageSize =
       parseInt(localStorage.getItem('page-size')) || ITEMS_PER_PAGE;
     setPageSize(localPageSize);
-    loadLogs(activePage, localPageSize)
+    Promise.all([loadLogs(activePage, localPageSize), handleEyeClick()])
       .then()
       .catch((reason) => {
         showError(reason);
@@ -814,13 +821,6 @@ export const useLogsData = () => {
       showError(reason);
     });
   }, [isAdminUser]);
-
-  // Initialize statistics when formApi is available
-  useEffect(() => {
-    if (formApi) {
-      handleEyeClick();
-    }
-  }, [formApi]);
 
   // Check if any record has expandable content
   const hasExpandableRows = () => {

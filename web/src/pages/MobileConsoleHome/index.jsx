@@ -21,7 +21,17 @@ import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Bell } from 'lucide-react';
-import { API, copy, renderQuota, setUserData, showSuccess } from '../../helpers';
+import { InputNumber, SideSheet } from '@douyinfe/semi-ui';
+import {
+  API,
+  copy,
+  getQuotaPerUnit,
+  renderQuota,
+  setUserData,
+  showError,
+  showInfo,
+  showSuccess,
+} from '../../helpers';
 import { StatusContext } from '../../context/Status';
 import { UserContext } from '../../context/User';
 import NoticeModal from '../../components/layout/NoticeModal';
@@ -71,6 +81,9 @@ const MobileConsoleHome = () => {
     maxCount: 0,
   });
   const [inviteCode, setInviteCode] = useState('');
+  const [transferVisible, setTransferVisible] = useState(false);
+  const [transferAmount, setTransferAmount] = useState(0);
+  const [transferSubmitting, setTransferSubmitting] = useState(false);
 
   const announcements = statusState?.status?.announcements || [];
 
@@ -94,11 +107,27 @@ const MobileConsoleHome = () => {
   const statQuota = renderQuota(
     (userState?.user?.used_quota || 0) + (userState?.user?.quota || 0),
   );
-  const requestCount = Number(userState?.user?.request_count || 0).toLocaleString();
+  const requestCount = Number(
+    userState?.user?.request_count || 0,
+  ).toLocaleString();
   const inviteCodeValue = inviteCode || userState?.user?.aff_code || '';
   const inviteLink = inviteCodeValue
     ? `${window.location.origin}/register?aff=${inviteCodeValue}`
     : '';
+  const availableInviteQuota = Number(userState?.user?.aff_quota || 0);
+
+  const getMinimumTransferQuota = () => {
+    const quotaPerUnit = Number(getQuotaPerUnit());
+    return Number.isFinite(quotaPerUnit) && quotaPerUnit > 0 ? quotaPerUnit : 1;
+  };
+
+  const syncCurrentUser = async () => {
+    const userRes = await API.get('/api/user/self').catch(() => null);
+    if (userRes?.data?.success && userRes.data.data) {
+      userDispatch({ type: 'login', payload: userRes.data.data });
+      setUserData(userRes.data.data);
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -158,6 +187,59 @@ const MobileConsoleHome = () => {
     }
   };
 
+  const handleOpenTransfer = () => {
+    const minQuota = getMinimumTransferQuota();
+    if (availableInviteQuota <= 0) {
+      showInfo(`${t('可用邀请额度')}：${renderQuota(0)}`);
+      return;
+    }
+    if (availableInviteQuota < minQuota) {
+      showInfo(
+        `${t('可用邀请额度')}：${renderQuota(availableInviteQuota)}，${t('划转金额最低为')} ${renderQuota(minQuota)}`,
+      );
+      return;
+    }
+    setTransferAmount((current) => {
+      const normalizedCurrent = Number(current);
+      if (Number.isFinite(normalizedCurrent) && normalizedCurrent >= minQuota) {
+        return Math.min(Math.round(normalizedCurrent), availableInviteQuota);
+      }
+      return minQuota;
+    });
+    setTransferVisible(true);
+  };
+
+  const handleTransfer = async () => {
+    const minQuota = getMinimumTransferQuota();
+    const normalizedAmount = Math.round(Number(transferAmount) || 0);
+    if (normalizedAmount < minQuota) {
+      showError(`${t('划转金额最低为')} ${renderQuota(minQuota)}`);
+      return;
+    }
+    if (normalizedAmount > availableInviteQuota) {
+      showError(`${t('可用邀请额度')}：${renderQuota(availableInviteQuota)}`);
+      return;
+    }
+    setTransferSubmitting(true);
+    try {
+      const res = await API.post('/api/user/aff_transfer', {
+        quota: normalizedAmount,
+      });
+      const { success, message } = res.data || {};
+      if (!success) {
+        showError(message || t('请求失败'));
+        return;
+      }
+      showSuccess(message);
+      setTransferVisible(false);
+      await syncCurrentUser();
+    } catch {
+      showError(t('请求失败'));
+    } finally {
+      setTransferSubmitting(false);
+    }
+  };
+
   return (
     <div className='h5-console-page h5-home-app-shell h5-home-app-offset px-2 pb-3'>
       <NoticeModal
@@ -167,6 +249,62 @@ const MobileConsoleHome = () => {
         defaultTab={unreadCount > 0 ? 'system' : 'inApp'}
         unreadKeys={unreadKeys}
       />
+      <SideSheet
+        title={t('划转到余额')}
+        visible={transferVisible}
+        placement='bottom'
+        height={320}
+        bodyStyle={{ padding: 0 }}
+        onCancel={() => setTransferVisible(false)}
+        className='h5-home-transfer-sheet'
+      >
+        <div className='h5-home-transfer-sheet-body'>
+          <div className='h5-home-transfer-panel'>
+            <div className='h5-home-transfer-row'>
+              <span className='h5-home-transfer-label'>
+                {t('可用邀请额度')}
+              </span>
+              <strong className='h5-home-transfer-value'>
+                {renderQuota(availableInviteQuota)}
+              </strong>
+            </div>
+
+            <div className='h5-home-transfer-inputBlock'>
+              <span className='h5-home-transfer-label'>{t('划转额度')}</span>
+              <InputNumber
+                min={getMinimumTransferQuota()}
+                max={availableInviteQuota}
+                precision={0}
+                value={transferAmount}
+                onChange={(value) => setTransferAmount(Number(value) || 0)}
+                className='h5-home-transfer-input'
+              />
+              <span className='h5-home-transfer-hint'>
+                {t('划转金额最低为')} {renderQuota(getMinimumTransferQuota())}
+              </span>
+            </div>
+          </div>
+
+          <div className='h5-home-transfer-actions'>
+            <button
+              type='button'
+              className='h5-app-btn h5-app-btn-ghost'
+              onClick={() => setTransferVisible(false)}
+              disabled={transferSubmitting}
+            >
+              {t('取消')}
+            </button>
+            <button
+              type='button'
+              className='h5-app-btn h5-app-btn-primary'
+              onClick={handleTransfer}
+              disabled={transferSubmitting || availableInviteQuota <= 0}
+            >
+              {t('划转到余额')}
+            </button>
+          </div>
+        </div>
+      </SideSheet>
 
       <div className='h5-home-app-layout'>
         <HomeHeroCard
@@ -198,6 +336,7 @@ const MobileConsoleHome = () => {
           inviteLink={inviteLink}
           affHistoryQuota={renderQuota(userState?.user?.aff_history_quota || 0)}
           affCount={Number(userState?.user?.aff_count || 0).toLocaleString()}
+          onTransfer={handleOpenTransfer}
           onCopyInviteCode={handleCopyInviteCode}
           onCopyInviteLink={handleCopyInviteLink}
         />

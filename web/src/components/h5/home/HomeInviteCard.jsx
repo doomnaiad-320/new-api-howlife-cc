@@ -29,6 +29,7 @@ const HomeInviteCard = ({
   inviteLink,
   affHistoryQuota,
   affCount,
+  onTransfer,
   onCopyInviteCode,
   onCopyInviteLink,
 }) => {
@@ -42,7 +43,7 @@ const HomeInviteCard = ({
           <div className='h5-home-app-invite-titleRow'>
             <Gift size={16} />
             <span className='h5-home-app-invite-titleText'>
-              {t('有福同享，每次充值都能赚')}
+              {t('邀请有礼  充值返利')}
             </span>
           </div>
 
@@ -68,10 +69,15 @@ const HomeInviteCard = ({
         </div>
 
         <div className='h5-home-app-invite-stats'>
-          <div className='h5-home-app-invite-stat'>
+          <button
+            type='button'
+            className='h5-home-app-invite-stat h5-home-app-invite-stat-button'
+            onClick={onTransfer}
+            aria-label={t('划转到余额')}
+          >
             <div className='h5-home-app-invite-stat-k'>{t('收益')}</div>
             <div className='h5-home-app-invite-stat-v'>{affHistoryQuota}</div>
-          </div>
+          </button>
           <div className='h5-home-app-invite-stat-divider' />
           <div className='h5-home-app-invite-stat'>
             <div className='h5-home-app-invite-stat-k'>{t('已邀')}</div>
@@ -82,10 +88,12 @@ const HomeInviteCard = ({
 
       <div className='h5-home-app-invite-field'>
         <div className='h5-home-app-invite-field-text'>
-          <span className='h5-home-app-invite-label'>{t('折扣码')}</span>
-          <span className='h5-home-app-invite-value is-strong'>
-            {inviteCode || '-'}
-          </span>
+          <div className='h5-home-app-invite-inlineRow'>
+            <span className='h5-home-app-invite-label'>{t('折扣码')}</span>
+            <span className='h5-home-app-invite-value is-strong'>
+              {inviteCode || '-'}
+            </span>
+          </div>
           <span className='h5-home-app-invite-tip'>
             {t('充值用折扣码：你返利，好友加享')}{' '}
             <span className='h5-home-app-invite-tip-accent'>5%</span>{' '}

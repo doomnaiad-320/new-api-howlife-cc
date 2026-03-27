@@ -3290,6 +3290,8 @@
     "缓存写": "Ghi bộ nhớ đệm",
     "写": "Ghi",
     "根据 Anthropic 协定，/v1/messages 的输入 tokens 仅统计非缓存输入，不包含缓存读取与缓存写入 tokens。": "Theo quy ước của Anthropic, input tokens của /v1/messages chỉ tính phần đầu vào không dùng cache và không bao gồm tokens đọc/ghi cache.",
-    "设计版本": "b80c3466cb6feafeb3990c7820e10e50"
+    "设计版本": "b80c3466cb6feafeb3990c7820e10e50",
+    "有福同享": "Chia sẻ phần thưởng",
+    "邀请有礼 / 充值返利": "Mời bạn có quà / Nạp tiền hoàn lợi"
   }
 }
