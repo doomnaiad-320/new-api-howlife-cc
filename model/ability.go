@@ -45,6 +45,14 @@ func GetGroupEnabledModels(group string) []string {
 	return models
 }
 
+func GroupHasEnabledModels(group string) bool {
+	var ability Ability
+	err := DB.Select("group", "model", "channel_id").
+		Where(commonGroupCol+" = ? and enabled = ?", group, true).
+		Take(&ability).Error
+	return err == nil
+}
+
 func GetEnabledModels() []string {
 	var models []string
 	// Find distinct models

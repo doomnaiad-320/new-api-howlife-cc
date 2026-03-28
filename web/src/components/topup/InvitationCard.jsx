@@ -35,7 +35,7 @@ const InvitationCard = ({
   t,
   userState,
   renderQuota,
-  setOpenTransfer,
+  onOpenTransfer,
   affLink,
   handleAffLinkClick,
 }) => {
@@ -84,7 +84,7 @@ const InvitationCard = ({
                       !userState?.user?.aff_quota ||
                       userState?.user?.aff_quota <= 0
                     }
-                    onClick={() => setOpenTransfer(true)}
+                    onClick={onOpenTransfer}
                     className='!rounded-lg'
                   >
                     <Zap size={12} className='mr-1' />

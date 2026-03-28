@@ -11,6 +11,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func userHasEnabledAutoGroup(userGroup string) bool {
+	for _, groupName := range service.GetUserAutoGroup(userGroup) {
+		if model.GroupHasEnabledModels(groupName) {
+			return true
+		}
+	}
+	return false
+}
+
 func GetGroups(c *gin.Context) {
 	groupNames := make([]string, 0)
 	for groupName := range ratio_setting.GetGroupRatioCopy() {
@@ -32,13 +41,16 @@ func GetUserGroups(c *gin.Context) {
 	for groupName, _ := range ratio_setting.GetGroupRatioCopy() {
 		// UserUsableGroups contains the groups that the user can use
 		if desc, ok := userUsableGroups[groupName]; ok {
+			if !model.GroupHasEnabledModels(groupName) {
+				continue
+			}
 			usableGroups[groupName] = map[string]interface{}{
 				"ratio": service.GetUserGroupRatio(userGroup, groupName),
 				"desc":  desc,
 			}
 		}
 	}
-	if _, ok := userUsableGroups["auto"]; ok {
+	if _, ok := userUsableGroups["auto"]; ok && userHasEnabledAutoGroup(userGroup) {
 		usableGroups["auto"] = map[string]interface{}{
 			"ratio": "自动",
 			"desc":  setting.GetUsableGroupDescription("auto"),

@@ -20,6 +20,7 @@ For commercial licensing, please contact support@quantumnous.com
 import React, { useEffect, useState, useContext, useRef } from 'react';
 import {
   API,
+  getCurrencyConfig,
   showError,
   showInfo,
   showSuccess,
@@ -28,6 +29,10 @@ import {
   copy,
   getQuotaPerUnit,
 } from '../../helpers';
+import {
+  displayAmountToQuota,
+  quotaToDisplayAmount,
+} from '../../helpers/quota';
 import { Modal, Toast } from '@douyinfe/semi-ui';
 import { useTranslation } from 'react-i18next';
 import { UserContext } from '../../context/User';
@@ -468,12 +473,17 @@ const TopUp = () => {
 
   // 划转邀请额度
   const transfer = async () => {
-    if (transferAmount < getQuotaPerUnit()) {
+    const normalizedQuota = displayAmountToQuota(transferAmount);
+    if (normalizedQuota < getQuotaPerUnit()) {
       showError(t('划转金额最低为') + ' ' + renderQuota(getQuotaPerUnit()));
       return;
     }
+    if (normalizedQuota > (userState?.user?.aff_quota || 0)) {
+      showError(t('可用邀请额度') + '：' + renderQuota(userState?.user?.aff_quota || 0));
+      return;
+    }
     const res = await API.post(`/api/user/aff_transfer`, {
-      quota: transferAmount,
+      quota: normalizedQuota,
     });
     const { success, message } = res.data;
     if (success) {
@@ -495,7 +505,7 @@ const TopUp = () => {
     if (!userState?.user?.id) {
       getUserQuota().then();
     }
-    setTransferAmount(getQuotaPerUnit());
+    setTransferAmount(quotaToDisplayAmount(getQuotaPerUnit()));
   }, []);
 
   useEffect(() => {
@@ -632,6 +642,47 @@ const TopUp = () => {
     setOpenTransfer(false);
   };
 
+  const getMinimumTransferQuota = () => {
+    const quotaPerUnit = Number(getQuotaPerUnit());
+    return Number.isFinite(quotaPerUnit) && quotaPerUnit > 0 ? quotaPerUnit : 1;
+  };
+
+  const getMinimumTransferAmount = () =>
+    quotaToDisplayAmount(getMinimumTransferQuota());
+
+  const getMaximumTransferAmount = () =>
+    quotaToDisplayAmount(userState?.user?.aff_quota || 0);
+
+  const getTransferInputPrecision = () => {
+    const { type } = getCurrencyConfig();
+    return type === 'TOKENS' ? 0 : 2;
+  };
+
+  const handleOpenTransfer = () => {
+    const availableInviteQuota = Number(userState?.user?.aff_quota || 0);
+    const minQuota = getMinimumTransferQuota();
+    const minAmount = getMinimumTransferAmount();
+    const maxAmount = getMaximumTransferAmount();
+    if (availableInviteQuota <= 0) {
+      showInfo(`${t('可用邀请额度')}：${renderQuota(0)}`);
+      return;
+    }
+    if (availableInviteQuota < minQuota) {
+      showInfo(
+        `${t('可用邀请额度')}：${renderQuota(availableInviteQuota)}，${t('划转金额最低为')} ${renderQuota(minQuota)}`,
+      );
+      return;
+    }
+    setTransferAmount((current) => {
+      const normalizedCurrent = Number(current);
+      if (Number.isFinite(normalizedCurrent) && normalizedCurrent >= minAmount) {
+        return Math.min(normalizedCurrent, maxAmount);
+      }
+      return minAmount;
+    });
+    setOpenTransfer(true);
+  };
+
   const handleOpenHistory = () => {
     setOpenHistory(true);
   };
@@ -704,7 +755,10 @@ const TopUp = () => {
         handleTransferCancel={handleTransferCancel}
         userState={userState}
         renderQuota={renderQuota}
-        getQuotaPerUnit={getQuotaPerUnit}
+        minimumTransferQuota={getMinimumTransferQuota()}
+        minimumTransferAmount={getMinimumTransferAmount()}
+        maximumTransferAmount={getMaximumTransferAmount()}
+        transferPrecision={getTransferInputPrecision()}
         transferAmount={transferAmount}
         setTransferAmount={setTransferAmount}
       />
@@ -825,7 +879,7 @@ const TopUp = () => {
               t={t}
               userState={userState}
               renderQuota={renderQuota}
-              setOpenTransfer={setOpenTransfer}
+              onOpenTransfer={handleOpenTransfer}
               affLink={affLink}
               handleAffLinkClick={handleAffLinkClick}
             />

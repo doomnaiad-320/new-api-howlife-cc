@@ -25,6 +25,7 @@ import { InputNumber, SideSheet } from '@douyinfe/semi-ui';
 import {
   API,
   copy,
+  getCurrencyConfig,
   getQuotaPerUnit,
   renderQuota,
   setUserData,
@@ -32,6 +33,10 @@ import {
   showInfo,
   showSuccess,
 } from '../../helpers';
+import {
+  displayAmountToQuota,
+  quotaToDisplayAmount,
+} from '../../helpers/quota';
 import { StatusContext } from '../../context/Status';
 import { UserContext } from '../../context/User';
 import NoticeModal from '../../components/layout/NoticeModal';
@@ -121,6 +126,16 @@ const MobileConsoleHome = () => {
     return Number.isFinite(quotaPerUnit) && quotaPerUnit > 0 ? quotaPerUnit : 1;
   };
 
+  const getMinimumTransferAmount = () =>
+    quotaToDisplayAmount(getMinimumTransferQuota());
+
+  const getMaximumTransferAmount = () => quotaToDisplayAmount(availableInviteQuota);
+
+  const getTransferInputPrecision = () => {
+    const { type } = getCurrencyConfig();
+    return type === 'TOKENS' ? 0 : 2;
+  };
+
   const syncCurrentUser = async () => {
     const userRes = await API.get('/api/user/self').catch(() => null);
     if (userRes?.data?.success && userRes.data.data) {
@@ -189,6 +204,8 @@ const MobileConsoleHome = () => {
 
   const handleOpenTransfer = () => {
     const minQuota = getMinimumTransferQuota();
+    const minAmount = getMinimumTransferAmount();
+    const maxAmount = getMaximumTransferAmount();
     if (availableInviteQuota <= 0) {
       showInfo(`${t('可用邀请额度')}：${renderQuota(0)}`);
       return;
@@ -201,29 +218,30 @@ const MobileConsoleHome = () => {
     }
     setTransferAmount((current) => {
       const normalizedCurrent = Number(current);
-      if (Number.isFinite(normalizedCurrent) && normalizedCurrent >= minQuota) {
-        return Math.min(Math.round(normalizedCurrent), availableInviteQuota);
+      if (Number.isFinite(normalizedCurrent) && normalizedCurrent >= minAmount) {
+        return Math.min(normalizedCurrent, maxAmount);
       }
-      return minQuota;
+      return minAmount;
     });
     setTransferVisible(true);
   };
 
   const handleTransfer = async () => {
     const minQuota = getMinimumTransferQuota();
-    const normalizedAmount = Math.round(Number(transferAmount) || 0);
-    if (normalizedAmount < minQuota) {
+    const normalizedAmount = Number(transferAmount) || 0;
+    const normalizedQuota = displayAmountToQuota(normalizedAmount);
+    if (normalizedQuota < minQuota) {
       showError(`${t('划转金额最低为')} ${renderQuota(minQuota)}`);
       return;
     }
-    if (normalizedAmount > availableInviteQuota) {
+    if (normalizedQuota > availableInviteQuota) {
       showError(`${t('可用邀请额度')}：${renderQuota(availableInviteQuota)}`);
       return;
     }
     setTransferSubmitting(true);
     try {
       const res = await API.post('/api/user/aff_transfer', {
-        quota: normalizedAmount,
+        quota: normalizedQuota,
       });
       const { success, message } = res.data || {};
       if (!success) {
@@ -270,17 +288,19 @@ const MobileConsoleHome = () => {
             </div>
 
             <div className='h5-home-transfer-inputBlock'>
-              <span className='h5-home-transfer-label'>{t('划转额度')}</span>
+              <span className='h5-home-transfer-label'>{t('划转金额')}</span>
               <InputNumber
-                min={getMinimumTransferQuota()}
-                max={availableInviteQuota}
-                precision={0}
+                min={getMinimumTransferAmount()}
+                max={getMaximumTransferAmount()}
+                precision={getTransferInputPrecision()}
+                step={getTransferInputPrecision() === 0 ? 1 : 0.01}
                 value={transferAmount}
                 onChange={(value) => setTransferAmount(Number(value) || 0)}
                 className='h5-home-transfer-input'
               />
               <span className='h5-home-transfer-hint'>
                 {t('划转金额最低为')} {renderQuota(getMinimumTransferQuota())}
+                {t('，输入金额后会自动换算为额度')}
               </span>
             </div>
           </div>

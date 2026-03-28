@@ -28,7 +28,10 @@ const TransferModal = ({
   handleTransferCancel,
   userState,
   renderQuota,
-  getQuotaPerUnit,
+  minimumTransferQuota,
+  minimumTransferAmount,
+  maximumTransferAmount,
+  transferPrecision,
   transferAmount,
   setTransferAmount,
 }) => {
@@ -59,15 +62,20 @@ const TransferModal = ({
         </div>
         <div>
           <Typography.Text strong className='block mb-2'>
-            {t('划转额度')} · {t('最低') + renderQuota(getQuotaPerUnit())}
+            {t('划转金额')} · {t('最低') + renderQuota(minimumTransferQuota)}
           </Typography.Text>
           <InputNumber
-            min={getQuotaPerUnit()}
-            max={userState?.user?.aff_quota || 0}
+            min={minimumTransferAmount}
+            max={maximumTransferAmount}
+            precision={transferPrecision}
+            step={transferPrecision === 0 ? 1 : 0.01}
             value={transferAmount}
-            onChange={(value) => setTransferAmount(value)}
+            onChange={(value) => setTransferAmount(Number(value) || 0)}
             className='w-full !rounded-lg'
           />
+          <Typography.Text type='tertiary' size='small' className='block mt-2'>
+            {t('输入金额后会自动换算为额度')}
+          </Typography.Text>
         </div>
       </div>
     </Modal>
