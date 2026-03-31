@@ -101,6 +101,12 @@ func SetChannelSelectableChecker(checker func(channel *Channel, group string, mo
 }
 
 func isChannelSelectable(channel *Channel, group string, model string) bool {
+	if channel == nil {
+		return false
+	}
+	if channel.IsSplitOnly() {
+		return false
+	}
 	channelSelectableCheckerLock.RLock()
 	checker := channelSelectableChecker
 	channelSelectableCheckerLock.RUnlock()

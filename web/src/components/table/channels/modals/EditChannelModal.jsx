@@ -160,6 +160,7 @@ const EditChannelModal = (props) => {
     system_prompt: '',
     system_prompt_override: false,
     fallback_only: false,
+    split_only: false,
     settings: '',
     // 仅 Vertex: 密钥格式（存入 settings.vertex_key_type）
     vertex_key_type: 'json',
@@ -387,6 +388,7 @@ const EditChannelModal = (props) => {
     pass_through_body_enabled: false,
     system_prompt: '',
     fallback_only: false,
+    split_only: false,
   });
   const showApiConfigCard = true; // 控制是否显示 API 配置卡片
   const getInitValues = () => ({ ...originInputs });
@@ -602,6 +604,7 @@ const EditChannelModal = (props) => {
           data.system_prompt_override =
             parsedSettings.system_prompt_override || false;
           data.fallback_only = parsedSettings.fallback_only || false;
+          data.split_only = parsedSettings.split_only || false;
         } catch (error) {
           console.error('解析渠道设置失败:', error);
           data.force_format = false;
@@ -611,6 +614,7 @@ const EditChannelModal = (props) => {
           data.system_prompt = '';
           data.system_prompt_override = false;
           data.fallback_only = false;
+          data.split_only = false;
         }
       } else {
         data.force_format = false;
@@ -620,6 +624,7 @@ const EditChannelModal = (props) => {
         data.system_prompt = '';
         data.system_prompt_override = false;
         data.fallback_only = false;
+        data.split_only = false;
       }
 
       if (data.settings) {
@@ -692,6 +697,7 @@ const EditChannelModal = (props) => {
         system_prompt: data.system_prompt,
         system_prompt_override: data.system_prompt_override || false,
         fallback_only: data.fallback_only || false,
+        split_only: data.split_only || false,
       });
       initialModelsRef.current = (data.models || [])
         .map((model) => (model || '').trim())
@@ -1038,6 +1044,7 @@ const EditChannelModal = (props) => {
       system_prompt: '',
       system_prompt_override: false,
       fallback_only: false,
+      split_only: false,
     });
     // 重置密钥模式状态
     setKeyMode('append');
@@ -1366,6 +1373,7 @@ const EditChannelModal = (props) => {
       system_prompt: localInputs.system_prompt || '',
       system_prompt_override: localInputs.system_prompt_override || false,
       fallback_only: localInputs.fallback_only || false,
+      split_only: localInputs.split_only || false,
     };
     localInputs.setting = JSON.stringify(channelExtraSettings);
 
@@ -1421,6 +1429,7 @@ const EditChannelModal = (props) => {
     delete localInputs.system_prompt;
     delete localInputs.system_prompt_override;
     delete localInputs.fallback_only;
+    delete localInputs.split_only;
     delete localInputs.is_enterprise_account;
     // 顶层的 vertex_key_type 不应发送给后端
     delete localInputs.vertex_key_type;
@@ -3406,6 +3415,19 @@ const EditChannelModal = (props) => {
                       }
                       extraText={t(
                         '仅在 RouterMode=v2 且主池无可用渠道时参与请求',
+                      )}
+                    />
+
+                    <Form.Switch
+                      field='split_only'
+                      label={t('仅分流渠道')}
+                      checkedText={t('开')}
+                      uncheckedText={t('关')}
+                      onChange={(value) =>
+                        handleChannelSettingsChange('split_only', value)
+                      }
+                      extraText={t(
+                        '开启后仅参与分流规则命中，不参与普通选路、亲和性选路和用户模型展示',
                       )}
                     />
 

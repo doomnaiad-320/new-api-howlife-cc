@@ -45,6 +45,49 @@ func GetGroupEnabledModels(group string) []string {
 	return models
 }
 
+func GetGroupUserVisibleModels(group string) []string {
+	type visibleModelRow struct {
+		Model   string  `gorm:"column:model"`
+		Status  int     `gorm:"column:status"`
+		Setting *string `gorm:"column:setting"`
+	}
+
+	var rows []visibleModelRow
+	err := DB.Table("abilities").
+		Select("abilities.model as model, channels.status as status, channels.setting as setting").
+		Joins("JOIN channels ON channels.id = abilities.channel_id").
+		Where("abilities."+commonGroupCol+" = ? AND abilities.enabled = ?", group, true).
+		Scan(&rows).Error
+	if err != nil {
+		common.SysError("failed to query user visible models: " + err.Error())
+		return []string{}
+	}
+
+	visibleModels := make(map[string]bool, len(rows))
+	modelOrder := make([]string, 0, len(rows))
+	for _, row := range rows {
+		if _, exists := visibleModels[row.Model]; !exists {
+			visibleModels[row.Model] = false
+			modelOrder = append(modelOrder, row.Model)
+		}
+		channel := &Channel{
+			Status:  row.Status,
+			Setting: row.Setting,
+		}
+		if channel.Status == common.ChannelStatusEnabled && !channel.IsSplitOnly() {
+			visibleModels[row.Model] = true
+		}
+	}
+
+	models := make([]string, 0, len(visibleModels))
+	for _, modelName := range modelOrder {
+		if visibleModels[modelName] {
+			models = append(models, modelName)
+		}
+	}
+	return models
+}
+
 func GroupHasEnabledModels(group string) bool {
 	var ability Ability
 	err := DB.Select("group", "model", "channel_id").

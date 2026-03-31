@@ -8,6 +8,7 @@ type ChannelSettings struct {
 	SystemPrompt           string `json:"system_prompt,omitempty"`
 	SystemPromptOverride   bool   `json:"system_prompt_override,omitempty"`
 	FallbackOnly           bool   `json:"fallback_only,omitempty"`
+	SplitOnly              bool   `json:"split_only,omitempty"`
 }
 
 type VertexKeyType string

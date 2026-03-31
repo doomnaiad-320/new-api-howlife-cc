@@ -249,6 +249,13 @@ func (channel *Channel) GetAutoBan() bool {
 	return *channel.AutoBan == 1
 }
 
+func (channel *Channel) IsSplitOnly() bool {
+	if channel == nil {
+		return false
+	}
+	return channel.GetSetting().SplitOnly
+}
+
 func (channel *Channel) Save() error {
 	return DB.Save(channel).Error
 }
