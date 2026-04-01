@@ -25,7 +25,9 @@ import { Check, ChevronRight } from 'lucide-react';
 
 import {
   API,
+  createGroupOption,
   getCurrencyConfig,
+  normalizeGroupMap,
   showError,
   showSuccess,
   timestamp2string,
@@ -132,10 +134,12 @@ const TokenFormSheet = ({ visible, tokenId, onClose, onSuccess }) => {
         showError(t(message));
         return;
       }
-      const options = Object.entries(data || {}).map(([key, info]) => ({
-        value: key,
-        label: info?.desc || key,
-      }));
+      const options = Object.entries(normalizeGroupMap(data || {})).map(
+        ([key, info]) =>
+          createGroupOption(key, info, {
+            preferValueAsLabel: true,
+          }),
+      );
       setGroups(options);
       if (!group) {
         const preferred = options.find((o) => o.value === 'default') || options[0];

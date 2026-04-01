@@ -17,13 +17,15 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Modal, Skeleton } from '@douyinfe/semi-ui';
 import { Copy, Pencil, Plus, Trash2 } from 'lucide-react';
-import { renderQuota } from '../../helpers';
+import { API, renderQuota, showError } from '../../helpers';
 import { useTokensData } from '../../hooks/tokens/useTokensData';
 import { timestamp2string } from '../../helpers/utils';
 import TokenFormSheet from './TokenFormSheet';
+
+const H5_TOKEN_BATCH_SIZE = 100;
 
 const maskKey = (raw) => {
   const key = String(raw || '');
@@ -114,14 +116,85 @@ const getGroupTagStyle = (group, active) => {
 
 const isActiveStatus = (status) => Number(status) === 1;
 
+const mergeTokensById = (items) => {
+  const tokenMap = new Map();
+  (items || []).forEach((token) => {
+    if (token?.id !== undefined && token?.id !== null) {
+      tokenMap.set(token.id, token);
+    }
+  });
+  return Array.from(tokenMap.values());
+};
+
 const MobileConsoleToken = () => {
   const openFluentNotificationRef = useRef(null);
-  const tokensData = useTokensData((key) =>
-    openFluentNotificationRef.current?.(key),
+  const tokensData = useTokensData(
+    (key) => openFluentNotificationRef.current?.(key),
+    { initialPageSize: H5_TOKEN_BATCH_SIZE },
   );
   const { t } = tokensData;
   const [sheetOpen, setSheetOpen] = useState(false);
   const [sheetTokenId, setSheetTokenId] = useState(null);
+
+  useEffect(() => {
+    const total = Number(tokensData.tokenCount || 0);
+    if (
+      tokensData.loading ||
+      total <= 0 ||
+      tokensData.tokens.length === 0 ||
+      tokensData.tokens.length >= total
+    ) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadRemainingTokens = async () => {
+      const totalPages = Math.ceil(total / H5_TOKEN_BATCH_SIZE);
+      const extraTokens = [];
+
+      try {
+        for (let page = 2; page <= totalPages; page += 1) {
+          const res = await API.get(`/api/token/?p=${page}&size=${H5_TOKEN_BATCH_SIZE}`, {
+            disableDuplicate: true,
+          });
+          const { success, message, data } = res.data || {};
+          if (!success) {
+            if (!cancelled) {
+              showError(t(message || '加载密钥失败'));
+            }
+            return;
+          }
+          extraTokens.push(...(data?.items || []));
+        }
+
+        if (cancelled) return;
+
+        tokensData.syncPageData({
+          items: mergeTokensById([...tokensData.tokens, ...extraTokens]),
+          total,
+          page: 1,
+          page_size: H5_TOKEN_BATCH_SIZE,
+        });
+      } catch (error) {
+        if (!cancelled) {
+          showError(t(error?.message || '加载密钥失败'));
+        }
+      }
+    };
+
+    loadRemainingTokens();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    t,
+    tokensData.loading,
+    tokensData.tokenCount,
+    tokensData.tokens,
+    tokensData.syncPageData,
+  ]);
 
   const tokenCountLabel = useMemo(() => {
     const count = Number(tokensData.tokenCount || 0);

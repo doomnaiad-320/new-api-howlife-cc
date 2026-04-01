@@ -30,15 +30,21 @@ import {
 import { ITEMS_PER_PAGE } from '../../constants';
 import { useTableCompactMode } from '../common/useTableCompactMode';
 
-export const useTokensData = (openFluentNotification) => {
+const resolvePageSize = (value) => {
+  const size = Number(value);
+  return Number.isInteger(size) && size > 0 ? size : ITEMS_PER_PAGE;
+};
+
+export const useTokensData = (openFluentNotification, options = {}) => {
   const { t } = useTranslation();
+  const initialPageSize = resolvePageSize(options.initialPageSize);
 
   // Basic state
   const [tokens, setTokens] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activePage, setActivePage] = useState(1);
   const [tokenCount, setTokenCount] = useState(0);
-  const [pageSize, setPageSize] = useState(ITEMS_PER_PAGE);
+  const [pageSize, setPageSize] = useState(initialPageSize);
   const [searching, setSearching] = useState(false);
   const [searchMode, setSearchMode] = useState(false); // 是否处于搜索结果视图
 
@@ -346,12 +352,12 @@ export const useTokensData = (openFluentNotification) => {
 
   // Initialize data
   useEffect(() => {
-    loadTokens(1)
+    loadTokens(1, initialPageSize)
       .then()
       .catch((reason) => {
         showError(reason);
       });
-  }, [pageSize]);
+  }, [initialPageSize]);
 
   return {
     // Basic state

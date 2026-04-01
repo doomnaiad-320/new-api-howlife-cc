@@ -157,7 +157,9 @@ const MobileConsolePlayground = () => {
       }
       const userGroup =
         userState?.user?.group || JSON.parse(localStorage.getItem('user') || '{}')?.group;
-      const groupOptions = processGroupsData(data || {}, userGroup);
+      const groupOptions = processGroupsData(data || {}, userGroup, {
+        preferValueAsLabel: true,
+      });
       setGroups(groupOptions);
 
       const current = String(inputs.group || '').trim();
@@ -410,7 +412,8 @@ const MobileConsolePlayground = () => {
               filteredGroups.map((item) => {
                 const value = String(item?.value || '');
                 const active = value === String(inputs.group || '');
-                const label = String(item?.fullLabel || item?.label || value);
+                const label = String(item?.label || value);
+                const description = String(item?.description || '');
                 return (
                   <button
                     key={value}
@@ -422,7 +425,9 @@ const MobileConsolePlayground = () => {
                     }}
                   >
                     <span className='h5-playground-pickerItemTitle'>{label}</span>
-                    <span className='h5-playground-pickerItemSub'>{value}</span>
+                    {description ? (
+                      <span className='h5-playground-pickerItemSub'>{description}</span>
+                    ) : null}
                     {active ? <span className='h5-playground-pickerItemTag'>{t('当前')}</span> : null}
                   </button>
                 );

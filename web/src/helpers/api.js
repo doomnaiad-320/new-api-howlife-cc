@@ -184,22 +184,75 @@ export const processModelsData = (data, currentModel) => {
   return { modelOptions, selectedModel };
 };
 
-// 处理分组数据
-export const processGroupsData = (data, userGroup) => {
-  let groupOptions = Object.entries(data).map(([group, info]) => ({
-    label:
-      info.desc.length > 20 ? info.desc.substring(0, 20) + '...' : info.desc,
+const isPlainObject = (value) =>
+  value !== null && typeof value === 'object' && !Array.isArray(value);
+
+export const normalizeGroupMap = (data) => {
+  if (typeof data === 'string') {
+    try {
+      const parsed = JSON.parse(data);
+      return isPlainObject(parsed) ? parsed : {};
+    } catch (_) {
+      return {};
+    }
+  }
+
+  return isPlainObject(data) ? data : {};
+};
+
+const normalizeGroupInfo = (info) => {
+  if (typeof info === 'string') {
+    return {
+      desc: info,
+      ratio: undefined,
+    };
+  }
+
+  if (isPlainObject(info)) {
+    return {
+      desc: typeof info.desc === 'string' ? info.desc : '',
+      ratio: info.ratio,
+    };
+  }
+
+  return {
+    desc: '',
+    ratio: undefined,
+  };
+};
+
+export const createGroupOption = (
+  group,
+  info,
+  { preferValueAsLabel = false } = {},
+) => {
+  const { desc, ratio } = normalizeGroupInfo(info);
+  const label = preferValueAsLabel ? group : desc || group;
+
+  return {
+    label,
     value: group,
-    ratio: info.ratio,
-    fullLabel: info.desc,
-  }));
+    ratio,
+    fullLabel: desc || group,
+    description: desc && desc !== group ? desc : '',
+  };
+};
+
+// 处理分组数据
+export const processGroupsData = (data, userGroup, options = {}) => {
+  const normalizedGroupMap = normalizeGroupMap(data);
+  let groupOptions = Object.entries(normalizedGroupMap).map(([group, info]) =>
+    createGroupOption(group, info, options),
+  );
 
   if (groupOptions.length === 0) {
     groupOptions = [
       {
-        label: '用户分组',
+        label: options.preferValueAsLabel ? 'default' : '用户分组',
         value: '',
         ratio: 1,
+        fullLabel: '用户分组',
+        description: '',
       },
     ];
   } else if (userGroup) {
