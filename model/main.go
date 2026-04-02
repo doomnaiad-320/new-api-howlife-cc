@@ -251,7 +251,7 @@ func migrateDB() error {
 	// Migrate price_amount column from float/double to decimal for existing tables
 	migrateSubscriptionPlanPriceAmount()
 
-	err := DB.AutoMigrate(
+	migrateModels := []interface{}{
 		&Channel{},
 		&Token{},
 		&User{},
@@ -271,17 +271,24 @@ func migrateDB() error {
 		&TwoFA{},
 		&TwoFABackupCode{},
 		&Checkin{},
-		&InvoiceRequest{},
 		&SubscriptionOrder{},
 		&UserSubscription{},
 		&SubscriptionPreConsumeRecord{},
 		&CustomOAuthProvider{},
 		&UserOAuthBinding{},
-	)
+	}
+	if !common.UsingSQLite {
+		migrateModels = append(migrateModels, &InvoiceRequest{})
+	}
+
+	err := DB.AutoMigrate(migrateModels...)
 	if err != nil {
 		return err
 	}
 	if common.UsingSQLite {
+		if err := ensureInvoiceRequestTableSQLite(); err != nil {
+			return err
+		}
 		if err := ensureSubscriptionPlanTableSQLite(); err != nil {
 			return err
 		}
@@ -320,12 +327,17 @@ func migrateDBFast() error {
 		{&TwoFA{}, "TwoFA"},
 		{&TwoFABackupCode{}, "TwoFABackupCode"},
 		{&Checkin{}, "Checkin"},
-		{&InvoiceRequest{}, "InvoiceRequest"},
 		{&SubscriptionOrder{}, "SubscriptionOrder"},
 		{&UserSubscription{}, "UserSubscription"},
 		{&SubscriptionPreConsumeRecord{}, "SubscriptionPreConsumeRecord"},
 		{&CustomOAuthProvider{}, "CustomOAuthProvider"},
 		{&UserOAuthBinding{}, "UserOAuthBinding"},
+	}
+	if !common.UsingSQLite {
+		migrations = append(migrations, struct {
+			model interface{}
+			name  string
+		}{&InvoiceRequest{}, "InvoiceRequest"})
 	}
 	// 动态计算migration数量，确保errChan缓冲区足够大
 	errChan := make(chan error, len(migrations))
@@ -351,6 +363,9 @@ func migrateDBFast() error {
 		}
 	}
 	if common.UsingSQLite {
+		if err := ensureInvoiceRequestTableSQLite(); err != nil {
+			return err
+		}
 		if err := ensureSubscriptionPlanTableSQLite(); err != nil {
 			return err
 		}
@@ -374,6 +389,91 @@ func migrateLOGDB() error {
 type sqliteColumnDef struct {
 	Name string
 	DDL  string
+}
+
+func ensureSQLiteColumns(tableName string, required []sqliteColumnDef) error {
+	var cols []struct {
+		Name string `gorm:"column:name"`
+	}
+	if err := DB.Raw("PRAGMA table_info(`" + tableName + "`)").Scan(&cols).Error; err != nil {
+		return err
+	}
+	existing := make(map[string]struct{}, len(cols))
+	for _, c := range cols {
+		existing[c.Name] = struct{}{}
+	}
+	for _, col := range required {
+		if _, ok := existing[col.Name]; ok {
+			continue
+		}
+		if err := DB.Exec("ALTER TABLE `" + tableName + "` ADD COLUMN " + col.DDL).Error; err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func ensureSQLiteIndexes(indexes []string) error {
+	for _, indexSQL := range indexes {
+		if err := DB.Exec(indexSQL).Error; err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func ensureInvoiceRequestTableSQLite() error {
+	if !common.UsingSQLite {
+		return nil
+	}
+	tableName := "invoice_requests"
+	if !DB.Migrator().HasTable(tableName) {
+		createSQL := `CREATE TABLE ` + "`" + tableName + "`" + ` (
+` + "`id`" + ` integer,
+` + "`user_id`" + ` integer NOT NULL,
+` + "`amount`" + ` decimal(12,2) NOT NULL DEFAULT 0.000000,
+` + "`invoice_title`" + ` varchar(255) NOT NULL,
+` + "`tax_number`" + ` varchar(128) NOT NULL DEFAULT '',
+` + "`email`" + ` varchar(255) NOT NULL,
+` + "`remark`" + ` text,
+` + "`status`" + ` varchar(32) NOT NULL DEFAULT 'pending',
+` + "`reject_reason`" + ` text,
+` + "`processed_by`" + ` integer DEFAULT 0,
+` + "`processed_at`" + ` bigint,
+` + "`created_at`" + ` bigint,
+` + "`updated_at`" + ` bigint,
+PRIMARY KEY (` + "`id`" + `)
+)`
+		if err := DB.Exec(createSQL).Error; err != nil {
+			return err
+		}
+	} else {
+		required := []sqliteColumnDef{
+			{Name: "user_id", DDL: "`user_id` integer NOT NULL"},
+			{Name: "amount", DDL: "`amount` decimal(12,2) NOT NULL DEFAULT 0.000000"},
+			{Name: "invoice_title", DDL: "`invoice_title` varchar(255) NOT NULL"},
+			{Name: "tax_number", DDL: "`tax_number` varchar(128) NOT NULL DEFAULT ''"},
+			{Name: "email", DDL: "`email` varchar(255) NOT NULL"},
+			{Name: "remark", DDL: "`remark` text"},
+			{Name: "status", DDL: "`status` varchar(32) NOT NULL DEFAULT 'pending'"},
+			{Name: "reject_reason", DDL: "`reject_reason` text"},
+			{Name: "processed_by", DDL: "`processed_by` integer DEFAULT 0"},
+			{Name: "processed_at", DDL: "`processed_at` bigint"},
+			{Name: "created_at", DDL: "`created_at` bigint"},
+			{Name: "updated_at", DDL: "`updated_at` bigint"},
+		}
+		if err := ensureSQLiteColumns(tableName, required); err != nil {
+			return err
+		}
+	}
+
+	return ensureSQLiteIndexes([]string{
+		"CREATE INDEX IF NOT EXISTS `idx_invoice_requests_user_id` ON `invoice_requests`(`user_id`)",
+		"CREATE INDEX IF NOT EXISTS `idx_invoice_requests_status` ON `invoice_requests`(`status`)",
+		"CREATE INDEX IF NOT EXISTS `idx_invoice_requests_processed_by` ON `invoice_requests`(`processed_by`)",
+		"CREATE INDEX IF NOT EXISTS `idx_invoice_requests_processed_at` ON `invoice_requests`(`processed_at`)",
+		"CREATE INDEX IF NOT EXISTS `idx_invoice_requests_created_at` ON `invoice_requests`(`created_at`)",
+	})
 }
 
 func ensureSubscriptionPlanTableSQLite() error {
@@ -406,16 +506,6 @@ PRIMARY KEY (` + "`id`" + `)
 )`
 		return DB.Exec(createSQL).Error
 	}
-	var cols []struct {
-		Name string `gorm:"column:name"`
-	}
-	if err := DB.Raw("PRAGMA table_info(`" + tableName + "`)").Scan(&cols).Error; err != nil {
-		return err
-	}
-	existing := make(map[string]struct{}, len(cols))
-	for _, c := range cols {
-		existing[c.Name] = struct{}{}
-	}
 	required := []sqliteColumnDef{
 		{Name: "title", DDL: "`title` varchar(128) NOT NULL"},
 		{Name: "subtitle", DDL: "`subtitle` varchar(255) DEFAULT ''"},
@@ -436,15 +526,7 @@ PRIMARY KEY (` + "`id`" + `)
 		{Name: "created_at", DDL: "`created_at` bigint"},
 		{Name: "updated_at", DDL: "`updated_at` bigint"},
 	}
-	for _, col := range required {
-		if _, ok := existing[col.Name]; ok {
-			continue
-		}
-		if err := DB.Exec("ALTER TABLE `" + tableName + "` ADD COLUMN " + col.DDL).Error; err != nil {
-			return err
-		}
-	}
-	return nil
+	return ensureSQLiteColumns(tableName, required)
 }
 
 // migrateSubscriptionPlanPriceAmount migrates price_amount column from float/double to decimal(10,6)
