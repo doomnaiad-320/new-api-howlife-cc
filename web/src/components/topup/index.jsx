@@ -43,7 +43,6 @@ import InvitationCard from './InvitationCard';
 import TopupRebateCard from './TopupRebateCard';
 import TransferModal from './modals/TransferModal';
 import PaymentConfirmModal from './modals/PaymentConfirmModal';
-import TopupHistoryModal from './modals/TopupHistoryModal';
 
 const TopUp = () => {
   const { t } = useTranslation();
@@ -89,9 +88,6 @@ const TopUp = () => {
   const [affLink, setAffLink] = useState('');
   const [openTransfer, setOpenTransfer] = useState(false);
   const [transferAmount, setTransferAmount] = useState(0);
-
-  // 账单Modal状态
-  const [openHistory, setOpenHistory] = useState(false);
 
   // 预设充值额度选项
   const [presetAmounts, setPresetAmounts] = useState([]);
@@ -683,14 +679,6 @@ const TopUp = () => {
     setOpenTransfer(true);
   };
 
-  const handleOpenHistory = () => {
-    setOpenHistory(true);
-  };
-
-  const handleHistoryCancel = () => {
-    setOpenHistory(false);
-  };
-
   const handleCreemCancel = () => {
     setCreemOpen(false);
     setSelectedCreemProduct(null);
@@ -793,13 +781,6 @@ const TopUp = () => {
         canUsePromoCode={canUsePromoCode}
       />
 
-      {/* 充值账单模态框 */}
-      <TopupHistoryModal
-        visible={openHistory}
-        onCancel={handleHistoryCancel}
-        t={t}
-      />
-
       {/* Creem 充值确认模态框 */}
       <Modal
         title={t('确定要充值 $')}
@@ -866,7 +847,6 @@ const TopUp = () => {
               renderQuota={renderQuota}
               statusLoading={statusLoading}
               topupInfo={topupInfo}
-              onOpenHistory={handleOpenHistory}
               rebatePercent={rebatePercent}
               rebateMaxCount={rebateMaxCount}
               presetPayAmounts={presetPayAmounts}

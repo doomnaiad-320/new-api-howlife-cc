@@ -76,6 +76,8 @@ import {
   Server,
   CalendarClock,
   ShieldAlert,
+  FileText,
+  Receipt,
 } from 'lucide-react';
 
 // 获取侧边栏Lucide图标组件
@@ -110,6 +112,10 @@ export function getLucideIcon(key, selected = false) {
       return <CheckSquare {...commonProps} color={iconColor} />;
     case 'topup':
       return <CreditCard {...commonProps} color={iconColor} />;
+    case 'billing':
+      return <Receipt {...commonProps} color={iconColor} />;
+    case 'invoice_apply':
+      return <FileText {...commonProps} color={iconColor} />;
     case 'channel':
       return <Layers {...commonProps} color={iconColor} />;
     case 'redemption':
@@ -123,6 +129,8 @@ export function getLucideIcon(key, selected = false) {
       return <Server {...commonProps} color={iconColor} />;
     case 'subscription':
       return <CalendarClock {...commonProps} color={iconColor} />;
+    case 'invoice':
+      return <Receipt {...commonProps} color={iconColor} />;
     case 'setting':
       return <Settings {...commonProps} color={iconColor} />;
     default:

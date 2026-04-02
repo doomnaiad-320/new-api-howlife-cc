@@ -57,11 +57,14 @@ export default function SettingsSidebarModulesAdmin(props) {
     personal: {
       enabled: true,
       topup: true,
+      billing: true,
+      invoice_apply: true,
       personal: true,
     },
     admin: {
       enabled: true,
       channel: true,
+      invoice: true,
       models: true,
       deployment: true,
       redemption: true,
@@ -119,11 +122,14 @@ export default function SettingsSidebarModulesAdmin(props) {
       personal: {
         enabled: true,
         topup: true,
+        billing: true,
+        invoice_apply: true,
         personal: true,
       },
       admin: {
         enabled: true,
         channel: true,
+        invoice: true,
         models: true,
         deployment: true,
         redemption: true,
@@ -197,10 +203,17 @@ export default function SettingsSidebarModulesAdmin(props) {
             midjourney: true,
             task: true,
           },
-          personal: { enabled: true, topup: true, personal: true },
+          personal: {
+            enabled: true,
+            topup: true,
+            billing: true,
+            invoice_apply: true,
+            personal: true,
+          },
           admin: {
             enabled: true,
             channel: true,
+            invoice: true,
             models: true,
             deployment: true,
             redemption: true,
@@ -257,6 +270,16 @@ export default function SettingsSidebarModulesAdmin(props) {
       modules: [
         { key: 'topup', title: t('钱包管理'), description: t('余额充值管理') },
         {
+          key: 'billing',
+          title: t('充值账单'),
+          description: t('查看充值订单记录'),
+        },
+        {
+          key: 'invoice_apply',
+          title: t('发票申请'),
+          description: t('提交并跟踪发票申请'),
+        },
+        {
           key: 'personal',
           title: t('个人设置'),
           description: t('个人信息设置'),
@@ -269,6 +292,11 @@ export default function SettingsSidebarModulesAdmin(props) {
       description: t('系统管理功能'),
       modules: [
         { key: 'channel', title: t('渠道管理'), description: t('API渠道配置') },
+        {
+          key: 'invoice',
+          title: t('发票管理'),
+          description: t('用户发票申请审核'),
+        },
         { key: 'models', title: t('模型管理'), description: t('AI模型配置') },
         {
           key: 'deployment',

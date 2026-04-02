@@ -36,6 +36,7 @@ import Channel from './pages/Channel';
 import Token from './pages/Token';
 import Redemption from './pages/Redemption';
 import TopUp from './pages/TopUp';
+import Billing from './pages/Billing';
 import Log from './pages/Log';
 import Chat from './pages/Chat';
 import Chat2Link from './pages/Chat2Link';
@@ -46,6 +47,8 @@ import ModelPage from './pages/Model';
 import ModelDeploymentPage from './pages/ModelDeployment';
 import Playground from './pages/Playground';
 import Subscription from './pages/Subscription';
+import Invoice from './pages/Invoice';
+import UserInvoice from './pages/UserInvoice';
 import CircuitBreakerPage from './pages/CircuitBreaker';
 import OAuth2Callback from './components/auth/OAuth2Callback';
 import PersonalSetting from './components/settings/PersonalSetting';
@@ -136,6 +139,14 @@ function App() {
           element={
             <AdminRoute>
               <Subscription />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path='/console/invoice'
+          element={
+            <AdminRoute>
+              <Invoice />
             </AdminRoute>
           }
         />
@@ -290,6 +301,22 @@ function App() {
               <Suspense fallback={<Loading></Loading>} key={location.pathname}>
                 {isMobile && !isAdminUser ? <MobileConsoleTopup /> : <TopUp />}
               </Suspense>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path='/console/billing'
+          element={
+            <PrivateRoute>
+              <Billing />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path='/console/my-invoice'
+          element={
+            <PrivateRoute>
+              <UserInvoice />
             </PrivateRoute>
           }
         />

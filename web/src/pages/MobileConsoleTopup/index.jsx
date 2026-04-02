@@ -20,7 +20,7 @@ For commercial licensing, please contact support@quantumnous.com
 import React, { useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, FileText } from 'lucide-react';
 import {
   API,
   showError,
@@ -33,6 +33,7 @@ import { StatusContext } from '../../context/Status';
 import { getCurrencyConfig } from '../../helpers/render';
 import TopupAmountCard from '../../components/h5/topup/TopupAmountCard';
 import TopupRedeemCard from '../../components/h5/topup/TopupRedeemCard';
+import InvoiceModal from '../../components/topup/modals/InvoiceModal';
 
 const MobileConsoleTopup = () => {
   const { t } = useTranslation();
@@ -60,6 +61,7 @@ const MobileConsoleTopup = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [amountLoading, setAmountLoading] = useState(false);
   const [paymentLoading, setPaymentLoading] = useState(false);
+  const [openInvoice, setOpenInvoice] = useState(false);
 
   const currency = getCurrencyConfig();
   const balance = renderQuota(userState?.user?.quota || 0);
@@ -384,6 +386,13 @@ const MobileConsoleTopup = () => {
 
   return (
     <div className='h5-topup-page'>
+      <InvoiceModal
+        visible={openInvoice}
+        onCancel={() => setOpenInvoice(false)}
+        t={t}
+        defaultEmail={userState?.user?.email || ''}
+      />
+
       <header className='h5-topup-header'>
         <button type='button' className='h5-topup-back' onClick={() => navigate(-1)}>
           <ArrowLeft size={20} />
@@ -393,6 +402,17 @@ const MobileConsoleTopup = () => {
       </header>
 
       <div className='h5-topup-body'>
+        <button
+          type='button'
+          className='h5-app-btn h5-app-btn-secondary w-full'
+          onClick={() => setOpenInvoice(true)}
+        >
+          <span className='h5-app-btn-icon'>
+            <FileText size={16} />
+          </span>
+          {t('发票申请')}
+        </button>
+
         <TopupAmountCard
           t={t}
           balance={balance}

@@ -40,7 +40,6 @@ import {
   Wallet,
   BarChart2,
   TrendingUp,
-  Receipt,
 } from 'lucide-react';
 import { IconGift } from '@douyinfe/semi-icons';
 import { useMinimumLoadingTime } from '../../hooks/common/useMinimumLoadingTime';
@@ -82,7 +81,6 @@ const RechargeCard = ({
   renderQuota,
   statusLoading,
   topupInfo,
-  onOpenHistory,
   rebatePercent,
   rebateMaxCount,
   presetPayAmounts,
@@ -90,29 +88,19 @@ const RechargeCard = ({
   const onlineFormApiRef = useRef(null);
   const redeemFormApiRef = useRef(null);
   const showAmountSkeleton = useMinimumLoadingTime(amountLoading);
-  console.log(' enabled screem ?', enableCreemTopUp, ' products ?', creemProducts);
   return (
     <Card className='!rounded-2xl shadow-sm border-0'>
       {/* 卡片头部 */}
-      <div className='flex items-center justify-between mb-4'>
-        <div className='flex items-center'>
-          <Avatar size='small' color='blue' className='mr-3 shadow-md'>
-            <CreditCard size={16} />
-          </Avatar>
-          <div>
-            <Typography.Text className='text-lg font-medium'>
-              {t('账户充值')}
-            </Typography.Text>
-            <div className='text-xs'>{t('多种充值方式，安全便捷')}</div>
-          </div>
+      <div className='flex items-center mb-4'>
+        <Avatar size='small' color='blue' className='mr-3 shadow-md'>
+          <CreditCard size={16} />
+        </Avatar>
+        <div>
+          <Typography.Text className='text-lg font-medium'>
+            {t('账户充值')}
+          </Typography.Text>
+          <div className='text-xs'>{t('多种充值方式，安全便捷')}</div>
         </div>
-        <Button
-          icon={<Receipt size={16} />}
-          theme='solid'
-          onClick={onOpenHistory}
-        >
-          {t('账单')}
-        </Button>
       </div>
 
       {/* 返利广告语 */}

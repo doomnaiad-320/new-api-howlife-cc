@@ -43,11 +43,14 @@ export const DEFAULT_ADMIN_CONFIG = {
   personal: {
     enabled: true,
     topup: true,
+    billing: true,
+    invoice_apply: true,
     personal: true,
   },
   admin: {
     enabled: true,
     channel: true,
+    invoice: true,
     models: true,
     deployment: true,
     redemption: true,

@@ -62,6 +62,9 @@ const PageLayout = () => {
 
   const cardProPages = [
     '/console/channel',
+    '/console/billing',
+    '/console/invoice',
+    '/console/my-invoice',
     '/console/log',
     '/console/redemption',
     '/console/user',
