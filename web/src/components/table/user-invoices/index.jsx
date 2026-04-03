@@ -141,53 +141,68 @@ const StatusBlock = ({ color, label, description, className }) => (
   </div>
 );
 
-const DesktopAmountCard = ({ label, value }) => {
+const DESKTOP_AMOUNT_PILL_STYLES = {
+  available: {
+    wrapper: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+    value: 'text-emerald-700',
+  },
+  eligible: {
+    wrapper: 'border-sky-200 bg-sky-50 text-sky-700',
+    value: 'text-sky-700',
+  },
+};
+
+const DesktopAmountPill = ({ label, value, tone = 'available' }) => {
+  const style = DESKTOP_AMOUNT_PILL_STYLES[tone] || DESKTOP_AMOUNT_PILL_STYLES.available;
+
   return (
     <div
-      className='rounded-md border px-3 py-2'
-      style={{
-        background: 'var(--semi-color-fill-0)',
-        borderColor: 'var(--semi-color-border)',
-      }}
+      className={`inline-flex items-center gap-3 rounded-full border px-4 py-2 ${style.wrapper}`}
     >
-      <div className='text-[11px] font-medium text-[var(--semi-color-text-2)]'>
-        {label}
-      </div>
-      <div className='mt-0.5 text-[15px] font-semibold text-[var(--semi-color-text-0)]'>
-        {value}
-      </div>
+      <span className='text-xs font-medium'>{label}</span>
+      <span className={`text-sm font-semibold ${style.value}`}>{value}</span>
     </div>
   );
 };
 
-const InvoiceDescription = ({ total, amountItems, hasAvailableAmount, onApply, t }) => {
+const InvoiceDescription = ({
+  availableAmount,
+  eligibleAmount,
+  hasAvailableAmount,
+  onApply,
+  t,
+}) => {
   return (
     <div className='w-full'>
-      <div className='flex flex-col gap-3 md:flex-row md:items-start md:justify-between'>
-        <div>
+      <div className='flex flex-col gap-3 md:flex-row md:items-center md:justify-between'>
+        <div className='min-w-0'>
           <div className='flex items-center text-blue-500'>
             <FileText size={16} className='mr-2' />
             <Text>{t('发票申请')}</Text>
           </div>
           <Text type='tertiary' className='mt-1 block text-xs'>
-            {t('共 {{count}} 条', { count: total || 0 })}
+            {t('累计可开票金额 {{amount}}', {
+              amount: formatMoney(eligibleAmount),
+            })}
           </Text>
         </div>
-        <Button
-          type='primary'
-          theme='solid'
-          size='small'
-          disabled={!hasAvailableAmount}
-          onClick={onApply}
-        >
-          {t('申请开票')}
-        </Button>
-      </div>
 
-      <div className='mt-3 grid gap-2 sm:grid-cols-2 sm:max-w-[360px]'>
-        {amountItems.map((item) => (
-          <DesktopAmountCard key={item.label} label={item.label} value={item.value} />
-        ))}
+        <div className='flex flex-wrap items-center justify-end gap-3 md:shrink-0'>
+          <DesktopAmountPill
+            label={t('可申请金额')}
+            value={formatMoney(availableAmount)}
+            tone='available'
+          />
+          <Button
+            type='primary'
+            theme='solid'
+            size='small'
+            disabled={!hasAvailableAmount}
+            onClick={onApply}
+          >
+            {t('申请开票')}
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -546,17 +561,6 @@ const UserInvoicesPage = () => {
     },
   ];
 
-  const desktopAmountItems = [
-    {
-      label: t('可申请金额'),
-      value: formatMoney(availableAmount),
-    },
-    {
-      label: t('累计可开票金额'),
-      value: formatMoney(eligibleAmount),
-    },
-  ];
-
   const amountFieldAction = hasAvailableAmount ? (
     <Button
       type='tertiary'
@@ -719,8 +723,8 @@ const UserInvoicesPage = () => {
 
   const desktopLogDescriptionArea = (
     <InvoiceDescription
-      total={total}
-      amountItems={desktopAmountItems}
+      availableAmount={availableAmount}
+      eligibleAmount={eligibleAmount}
       hasAvailableAmount={hasAvailableAmount}
       onApply={() => setShowApplyModal(true)}
       t={t}
